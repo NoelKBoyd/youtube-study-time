@@ -362,6 +362,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 async function init() {
+  $('levels-legend').textContent =
+    'Levels: ' + LEVELS.map((level) => `${level.level} ${level.name} (${level.hours} h)`).join(' · ');
   applyStorage(await chrome.storage.local.get(['sessionLog', 'goals']));
   render();
   if (typeof twinkle !== 'function') return;

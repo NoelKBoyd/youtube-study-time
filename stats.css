@@ -420,6 +420,10 @@ button.icon:hover {
   text-align: center;
 }
 
+.sky stop {
+  stop-color: var(--star-glow);
+}
+
 .sky .dust {
   fill: var(--dust);
 }

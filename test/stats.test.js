@@ -4,7 +4,7 @@ import { loadPage, flush, closeAllPages } from './load.js';
 
 afterEach(closeAllPages);
 
-const STATS_SCRIPTS = ['shared.js', 'stats.js'];
+const STATS_SCRIPTS = ['shared.js', 'constellation.js', 'stats.js'];
 
 // Midday `daysAgo` local days back (or now, if today's midday hasn't come yet).
 function dayAt(daysAgo) {
@@ -194,6 +194,8 @@ test('Clear history asks first, then the background clears it and everything res
   assert.equal(text(page, 'tile-best'), '0 days');
   assert.equal(rows(page, 'topics-table').length, 0);
   assert.equal(rows(page, 'history-table').length, 0);
+  assert.equal(page.document.querySelectorAll('#sky .star').length, 0);
+  assert.ok(page.document.querySelector('#sky .sky-empty'));
 });
 
 test('a session logged while the page is open shows up right away', async () => {
@@ -234,6 +236,82 @@ test('topic names and other text are inserted as text, never HTML', async () => 
   const page = await openStats({ sessionLog: [record(0, 5, { topic: '<img src=x onerror=alert(1)>' })] });
   assert.equal(page.document.querySelectorAll('img').length, 0);
   assert.equal(rows(page, 'history-table')[0].querySelector('th').textContent, '<img src=x onerror=alert(1)>');
+});
+
+// ---------- Constellation ----------
+
+const stars = (page) => [...page.document.querySelectorAll('#sky .star')];
+const starFor = (page, key) => stars(page).find((star) => star.dataset.key === key);
+
+test('the constellation has one star per topic, sized by level, with a levels legend', async () => {
+  const page = await openStats({
+    sessionLog: [
+      record(9, 30, { topic: 'algebra' }), // level 1
+      record(8, 6 * 60, { topic: 'Rust' }), // level 3
+      record(7, 101 * 60, { topic: 'Go' }), // level 6
+      record(1, 10, { topic: ' rust' })
+    ]
+  });
+  const levels = Object.fromEntries(stars(page).map((star) => [star.dataset.key, star.getAttribute('class')]));
+  assert.deepEqual(levels, { algebra: 'star level-1', rust: 'star level-3', go: 'star level-6' });
+  const radius = (key) => Number(starFor(page, key).querySelector('.core').getAttribute('r'));
+  assert.ok(radius('algebra') < radius('rust') && radius('rust') < radius('go'));
+  assert.equal(starFor(page, 'algebra').querySelectorAll('.sparkle').length, 0);
+  assert.equal(starFor(page, 'go').querySelectorAll('.sparkle').length, 2);
+  assert.equal(starFor(page, 'rust').getAttribute('aria-label'), ' rust: 6 h 10 m session time. Level 3, Steady. 13 h 50 m to Focused.');
+  assert.equal(starFor(page, 'rust').querySelector('.label').textContent, ' rust');
+  assert.match(text(page, 'levels-legend'), /1 Spark \(0 h\) · 2 Curious \(1 h\).*6 Mastery \(100 h\)/);
+});
+
+test('hovering a star shows its details; clicking keeps them open', async () => {
+  const page = await openStats({ sessionLog: [record(1, 100 * 60, { topic: 'Go' }), record(0, 20, { topic: 'Rust' })] });
+  const tip = page.document.querySelector('.sky-tip');
+  const { PointerEvent = page.window.MouseEvent } = page.window;
+  assert.equal(tip.hidden, true);
+
+  starFor(page, 'rust').dispatchEvent(new PointerEvent('pointerenter'));
+  assert.equal(tip.hidden, false);
+  assert.equal(tip.querySelector('strong').textContent, 'Rust');
+  assert.match(tip.textContent, /20 m session time.*Level 1, Spark.*40 m to Curious/);
+  starFor(page, 'rust').dispatchEvent(new PointerEvent('pointerleave'));
+  assert.equal(tip.hidden, true);
+
+  starFor(page, 'go').dispatchEvent(new page.window.MouseEvent('click', { bubbles: true }));
+  starFor(page, 'go').dispatchEvent(new PointerEvent('pointerleave'));
+  assert.equal(tip.hidden, false);
+  assert.match(tip.textContent, /Top level reached/);
+  assert.ok(starFor(page, 'go').classList.contains('selected'));
+});
+
+test('existing stars keep their place when a new topic appears', async () => {
+  const page = await openStats({ sessionLog: [record(3, 10, { topic: 'Rust' }), record(2, 10, { topic: 'Go' })] });
+  const where = () => Object.fromEntries(stars(page).map((star) => [star.dataset.key, star.getAttribute('transform')]));
+  const before = where();
+  await page.chrome.storage.local.set({ sessionLog: [...page.chrome._store.sessionLog, record(0, 10, { topic: 'Haskell' })] });
+  await flush();
+  const after = where();
+  assert.equal(after.rust, before.rust);
+  assert.equal(after.go, before.go);
+  assert.ok(after.haskell);
+});
+
+test('a recently completed session twinkles its star on load', async () => {
+  const recent = { ...record(0, 10, { topic: 'Rust' }), endedAt: Date.now() - 60000 };
+  const stopped = { ...record(0, 10, { topic: 'Go', outcome: 'stopped' }), endedAt: Date.now() - 60000 };
+  const page = await openStats({ sessionLog: [recent, stopped, record(3, 10, { topic: 'Old' })] });
+  assert.ok(starFor(page, 'rust').classList.contains('twinkle'));
+  assert.ok(!starFor(page, 'go').classList.contains('twinkle'));
+  assert.ok(!starFor(page, 'old').classList.contains('twinkle'));
+});
+
+test('a session completed while the page is open twinkles its star', async () => {
+  const page = await openStats({ sessionLog: [record(3, 10, { topic: 'Rust' })] });
+  assert.ok(!starFor(page, 'rust').classList.contains('twinkle'));
+  await page.chrome.storage.local.set({
+    sessionLog: [...page.chrome._store.sessionLog, { ...record(0, 25, { topic: 'Rust' }), endedAt: Date.now() }]
+  });
+  await flush();
+  assert.ok(starFor(page, 'rust').classList.contains('twinkle'));
 });
 
 // ---------- Popup ----------
