@@ -1,4 +1,4 @@
-// YouTube Study Time - the constellation, the visual for topic mastery.
+// Study Time for YouTube - the constellation, the visual for topic mastery.
 //
 // renderConstellation(container, topics) draws each topic as a star on a night sky;
 // twinkle(topicKey) makes one star twinkle. It only reads the topic summaries from

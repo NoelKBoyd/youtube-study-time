@@ -1,4 +1,4 @@
-// YouTube Study Time - content script
+// Study Time for YouTube - content script
 //
 // Runs on every youtube.com page. While a study session is active it:
 //   - adds the "yst-active" class to <html>, which content.css uses to hide
@@ -62,7 +62,7 @@ async function update() {
         panel = createStartBar(defaults);
         grid.before(panel);
       } else {
-        console.warn(`[YouTube Study Time] "${YT.homeGrid}" not found, not showing the start bar.`);
+        console.warn(`[Study Time for YouTube] "${YT.homeGrid}" not found, not showing the start bar.`);
       }
     }
     return;
@@ -86,7 +86,7 @@ async function update() {
       // YouTube probably changed its layout. Still show the feed, and say what broke.
       const secondary = document.querySelector(YT.secondary);
       console.warn(
-        `[YouTube Study Time] "${YT.related}" not found` +
+        `[Study Time for YouTube] "${YT.related}" not found` +
           (secondary ? `, using "${YT.secondary}" instead.` : ', showing a floating panel.')
       );
       panel = createPanel(secondary ? 'yst-sidebar' : 'yst-floating');
@@ -102,7 +102,7 @@ async function update() {
       panel = createPanel('yst-home');
       content.prepend(panel);
     } else {
-      console.warn(`[YouTube Study Time] "${YT.pageContent}" not found, covering the page instead.`);
+      console.warn(`[Study Time for YouTube] "${YT.pageContent}" not found, covering the page instead.`);
       panel = createPanel('yst-overlay');
       document.body.append(panel);
     }
@@ -672,7 +672,7 @@ document.addEventListener('yt-navigate-finish', () => {
   const sinceEnd = Date.now() - lastEndedAt;
   if (sinceEnd > AUTOPLAY_WINDOW_MS || lastInputAt > lastEndedAt) return;
   lastEndedAt = 0;
-  console.warn('[YouTube Study Time] Autoplay got through, redirecting.');
+  console.warn('[Study Time for YouTube] Autoplay got through, redirecting.');
   if (!playNextStudyVideo()) history.back();
 });
 

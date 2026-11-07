@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Study Time",
+  "name": "Study Time for YouTube",
   "version": "1.1.0",
   "description": "Pick a topic and a time. Until the timer ends, YouTube only suggests videos about that topic.",
   "permissions": ["storage", "alarms", "notifications"],
@@ -10,7 +10,7 @@
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "YouTube Study Time",
+    "default_title": "Study Time for YouTube",
     "default_icon": {
       "16": "assets/icons/icon16.png",
       "32": "assets/icons/icon32.png",

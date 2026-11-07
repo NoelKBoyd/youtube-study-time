@@ -1,4 +1,4 @@
-// YouTube Study Time - background service worker
+// Study Time for YouTube - background service worker
 //
 // This file does three jobs:
 //   1. Runs the study session timer (start, stop, and end when time is up).
