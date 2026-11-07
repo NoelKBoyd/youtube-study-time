@@ -53,7 +53,7 @@ Beyond the panel, `content.js` also: redirects `/shorts/<id>` to `/watch?v=<id>`
 
 ## When YouTube's layout changes
 
-Every YouTube DOM name the script depends on is in the `YT` object at the top of `content.js`; the CSS ones are at the top of `content.css` (which also has a second layer hiding recommendation card elements inside `#secondary`). If `#related` isn't found within 5s, the panel falls back to prepending into `#secondary`, then to a fixed `yst-floating` panel, and logs a `[YouTube Study Time]` console warning.
+Every YouTube DOM name the script depends on is in the `YT` object at the top of `content.js`; the CSS ones are at the top of `content.css` (which also has a second layer hiding recommendation card elements inside `#secondary`, and a rule cutting the `#frosted-glass.with-chipbar` backdrop behind the top bar back to the bar's height, since it otherwise covers the top of the home panel). If `#related` isn't found within 5s, the panel falls back to prepending into `#secondary`, then to a fixed `yst-floating` panel, and logs a `[YouTube Study Time]` console warning.
 
 ## Known limits (by design)
 
