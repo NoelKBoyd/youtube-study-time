@@ -42,6 +42,18 @@ test('fillIcons swaps data-icon placeholders for SVG icons, keeping their classe
 
 // ---------- Settings ----------
 
+test('the settings page shows the YouTube API Services notice and policy links', () => {
+  const page = loadPage('options/options.html', ['shared/ui.js']);
+  const terms = page.document.querySelector('.api-terms');
+  assert.match(terms.textContent, /This extension uses YouTube API Services\./);
+  const links = [...terms.querySelectorAll('a')].map((a) => [a.textContent.trim(), a.href, a.target]);
+  assert.deepEqual(links, [
+    ['Privacy policy', 'https://github.com/NoelKBoyd/youtube-study-time/blob/main/PRIVACY.md', '_blank'],
+    ['YouTube Terms of Service', 'https://www.youtube.com/t/terms', '_blank'],
+    ['Google Privacy Policy', 'https://policies.google.com/privacy', '_blank'],
+  ]);
+});
+
 async function openOptions(storage = {}, messageHandler) {
   const page = loadPage('options/options.html', ['shared/ui.js', 'options/options.js'], { storage, messageHandler });
   await flush();
