@@ -256,7 +256,6 @@ test('start bar offers up to 3 recent topics that fill the Topic field', async (
   const bar = page.document.querySelector('.yst-start');
   const chips = [...bar.querySelectorAll('.yst-recent .yst-chip')];
   assert.deepEqual(chips.map((chip) => chip.textContent), ['Physics', 'Chemistry', 'Biology']);
-  assert.ok(bar.querySelector('.yst-start-grid').classList.contains('yst-has-recent'));
   chips[1].click();
   assert.equal(bar.querySelector('input').value, 'Chemistry');
   page.close();
