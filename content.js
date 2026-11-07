@@ -126,8 +126,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (changes.session) {
     session = changes.session.newValue || null;
     update();
-  } else if ((changes.goals || changes.sessionLog) && panel && panel.refreshGoals) {
-    panel.refreshGoals(); // goals edited on the stats page, or a session was logged
+  } else if ((changes.goals || changes.sessionLog) && panel && panel.refresh) {
+    panel.refresh(); // goals edited on the stats page, or a session was logged
   }
 });
 
@@ -257,18 +257,22 @@ function createStartBar({ lastTopic, lastMinutes }) {
   const title = make('div', 'yst-title');
   title.append(makeIcon('school'), make('span', '', 'Study time'));
   const goals = make('div', 'yst-goals');
-  const statsButton = make('button', 'yst-button yst-tonal yst-stats-button');
-  statsButton.type = 'button';
-  statsButton.title = 'Open your study stats';
-  statsButton.append(makeIcon('bar_chart'), 'Stats');
+  const statsButton = collapsibleButton('yst-tonal yst-neutral yst-stats-button', 'bar_chart', 'Stats');
+  const actions = make('div', 'yst-start-actions');
+  actions.append(goals, statsButton, dismiss);
   const head = make('div', 'yst-start-head');
-  head.append(title, goals, statsButton, dismiss);
+  head.append(title, actions);
 
-  // Form row: topic, minutes (with quick picks) and Start, wrapping on narrow windows.
-  const row = make('div', 'yst-start-row');
-  row.append(topicField, minutesField, minutePicks(minutesInput), start);
+  // Form grid (laid out in content.css): Topic | Minutes | Start on the first row,
+  // recent topics | minute chips below. Narrow windows stack it into more rows.
+  const recent = make('div', 'yst-recent');
+  recent.setAttribute('role', 'group');
+  recent.setAttribute('aria-label', 'Recent topics');
+  recent.hidden = true;
+  const grid = make('div', 'yst-start-grid');
+  grid.append(topicField, minutesField, start, recent, minutePicks(minutesInput));
 
-  form.append(head, row, error);
+  form.append(head, grid, error);
   keepKeysFromYouTube(form);
 
   form.addEventListener('submit', (event) => {
@@ -284,27 +288,65 @@ function createStartBar({ lastTopic, lastMinutes }) {
   });
 
   // Called again by the storage listener when goals or the session log change.
-  form.refreshGoals = async () => {
+  form.refresh = async () => {
     const { goals: saved, sessionLog = [] } = await chrome.storage.local.get(['goals', 'sessionLog']);
     renderGoals(goals, { ...DEFAULT_GOALS, ...saved }, sessionLog, send);
+    renderRecentTopics(recent, sessionLog, topicInput);
+    grid.classList.toggle('yst-has-recent', !recent.hidden); // narrow layout gives it a row
   };
-  form.refreshGoals();
+  form.refresh();
 
   form.cleanup = () => {};
   return form;
 }
 
+// A button with an icon and a label. On narrow windows content.css hides the label,
+// leaving a round icon button; its aria-label and tooltip carry the same text.
+function collapsibleButton(variant, icon, label) {
+  const button = make('button', `yst-button yst-collapsible ${variant}`);
+  button.type = 'button';
+  button.setAttribute('aria-label', label);
+  button.dataset.tooltip = label;
+  button.append(makeIcon(icon), make('span', 'yst-button-label', label));
+  return button;
+}
+
+// Up to three topics from the history, newest first, as chips that fill the Topic field.
+function renderRecentTopics(container, log, topicInput) {
+  const seen = new Set();
+  const topics = [];
+  for (const entry of [...log].sort((a, b) => (b.endedAt || 0) - (a.endedAt || 0))) {
+    const key = entry.topicKey || topicKey(entry.topic || '');
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    topics.push(entry.topic);
+    if (topics.length === 3) break;
+  }
+  container.replaceChildren(
+    ...topics.map((topic) => {
+      const chip = make('button', 'yst-chip yst-recent-chip');
+      chip.type = 'button';
+      chip.title = topic; // long topics are cut off with an ellipsis
+      chip.append(make('span', 'yst-chip-label', topic));
+      chip.addEventListener('click', () => {
+        topicInput.value = topic;
+        topicInput.focus();
+      });
+      return chip;
+    })
+  );
+  container.hidden = topics.length === 0;
+}
+
 // Today's and this week's time against the goals set on the stats page.
-// With neither goal set, a single "Set your goals" button takes its place.
+// With neither goal set, a single "Set daily & weekly goals" button takes its place.
 function renderGoals(container, { dailyMin, weeklyMin }, log, send) {
   const now = Date.now();
   const openGoals = () => send({ type: 'openStats', section: 'goals' });
   container.replaceChildren();
 
   if (!(dailyMin > 0) && !(weeklyMin > 0)) {
-    const setGoals = make('button', 'yst-chip yst-goal-placeholder');
-    setGoals.type = 'button';
-    setGoals.append(makeIcon('flag'), 'Set your daily & weekly goals');
+    const setGoals = collapsibleButton('yst-text yst-goal-placeholder', 'flag', 'Set daily & weekly goals');
     setGoals.addEventListener('click', openGoals);
     container.append(setGoals);
     return;
@@ -341,15 +383,15 @@ function renderGoals(container, { dailyMin, weeklyMin }, log, send) {
 }
 
 // Chips that fill the Minutes field with a common length. The matching chip shows as
-// selected, also when the number is typed.
+// selected (with a check mark, shown by content.css), also when the number is typed.
 function minutePicks(minutesInput) {
   const group = make('div', 'yst-picks');
   group.setAttribute('role', 'group');
   group.setAttribute('aria-label', 'Quick pick minutes');
   const chips = QUICK_MINUTES.map((minutes) => {
-    const chip = make('button', 'yst-chip', String(minutes));
+    const chip = make('button', 'yst-chip');
     chip.type = 'button';
-    chip.setAttribute('aria-label', `${minutes} minutes`);
+    chip.append(makeIcon('check'), `${minutes} min`);
     chip.addEventListener('click', () => {
       minutesInput.value = minutes;
       sync();

@@ -17,7 +17,7 @@ A full list of what the extension does today (v1.1.0), followed by the gaps that
 
 - **Toolbar popup:** the start form when no session is running. During a session it shows the topic, a live countdown and a **Stop early** button. It warns you, with a link to settings, if no API key is set. It shows today's session time (with the daily goal's progress when one is set), and its footer has **View stats** and **Settings**.
 - **Edit button on the panel** (on the YouTube page itself): change the topic or the minutes left, or **Stop session**, without opening the popup. Esc or Cancel closes it.
-- **Start bar on the home page** when no session is running. It sits inside YouTube's feed, just above the videos. Quick-pick chips (15, 25, 45, 60) fill in the minutes. Its **×** hides it for that tab only.
+- **Start bar on the home page** when no session is running. It sits inside YouTube's feed, just above the videos. Quick-pick chips (15, 25, 45, 60 min) fill in the minutes, and up to three recent topics fill in the topic. Its **×** hides it for that tab only.
 - **Typing in the forms doesn't trigger YouTube's shortcuts** (k, j, f, / and so on).
 
 ## Stats, goals and topic mastery

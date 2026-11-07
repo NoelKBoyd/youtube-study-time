@@ -228,18 +228,20 @@ html[dark] #yst-panel {
 
 /* ---------- Start bar (home page, no session) ----------
    Inside YouTube's feed, between the filter chips and the videos. Side margins line
-   it up with the edges of the grid. Two rows: title + goals + Stats + ×, then the form,
-   which stays on one line on wide screens and wraps on narrow ones. */
+   it up with the edges of the grid. One card: a header row (title | goals, Stats, ×)
+   and a form grid:
+       Topic          | Minutes | Start studying
+       recent topics  | 15 min  25 min  45 min  60 min
+   The card's side padding is symmetric and nothing inside adds its own, so the ×
+   and the Start button share one right edge. Only Start is a solid primary fill. */
 
 #yst-panel.yst-start {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: block;
   flex: none;
   align-self: stretch; /* the grid is a centred flex column */
   box-sizing: border-box;
   margin: 24px calc(var(--ytd-rich-grid-item-margin, 16px) / 2 + var(--ytd-rich-grid-gutter-margin, 24px)) 0;
-  padding: 16px 16px 20px 24px;
+  padding: 16px 20px 20px;
   border-radius: 16px;
   background: var(--yst-surface-container);
   --yst-field-bg: var(--yst-surface-container);
@@ -247,51 +249,205 @@ html[dark] #yst-panel {
 
 #yst-panel .yst-start-head {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
 }
 
 #yst-panel .yst-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: auto;
+  min-width: 0;
   font: 500 16px/24px var(--yst-font);
   letter-spacing: 0.15px;
+  white-space: nowrap;
 }
 
+#yst-panel .yst-title > .yst-icon {
+  width: 22px;
+  height: 22px;
+}
+
+#yst-panel .yst-start-actions,
 #yst-panel .yst-goals {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
-#yst-panel .yst-start-row {
-  display: flex;
-  flex-wrap: wrap;
+/* Stats: a tonal button on a neutral surface, not the green primary container */
+#yst-panel .yst-button.yst-neutral {
+  background: var(--yst-surface-container-highest);
+  color: var(--yst-on-surface);
+}
+
+/* Header tooltips open downwards: above the card sit YouTube's fixed filter chips. */
+#yst-panel .yst-start-head [data-tooltip]::after {
+  top: calc(100% + 4px);
+  bottom: auto;
+}
+
+#yst-panel .yst-start-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px auto;
+  grid-template-areas:
+    'topic  minutes start'
+    'recent picks   picks';
+  gap: 12px;
   align-items: center;
-  gap: 12px 16px;
-  padding-right: 8px;
 }
 
-#yst-panel .yst-start-row .yst-field-topic {
-  flex: 1 1 240px;
-  min-width: min(240px, 100%);
-  max-width: 640px;
+#yst-panel .yst-start-grid .yst-field-topic { grid-area: topic; }
+#yst-panel .yst-start-grid .yst-field-minutes { grid-area: minutes; }
+#yst-panel .yst-start-grid .yst-start-button { grid-area: start; }
+#yst-panel .yst-start-grid .yst-recent { grid-area: recent; }
+#yst-panel .yst-start-grid .yst-picks { grid-area: picks; }
+
+/* Topic, Minutes and Start are all exactly 48px tall. The height is pinned on the
+   field and its input so nothing (theme or page) can stretch them. */
+#yst-panel .yst-start-grid .yst-field {
+  height: 48px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 12px;
 }
 
-#yst-panel .yst-start-row .yst-field-minutes {
-  flex: 0 0 100px;
+#yst-panel .yst-start-grid .yst-field-input {
+  height: 48px;
+  min-height: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+#yst-panel .yst-start-button {
+  justify-self: end;
+  height: 48px;
+  border-radius: 24px;
+}
+
+/* Duration chips, left-aligned under the Minutes field. The check mark shows only
+   on the selected one, which takes theme.css's primary-container colours. */
+#yst-panel .yst-picks,
+#yst-panel .yst-recent {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
 }
 
 #yst-panel .yst-picks {
-  display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  justify-self: start;
 }
 
-/* One goal: "Today  25 m / 1 h" with a thin progress line, as a 32px outlined chip */
+#yst-panel :is(.yst-picks, .yst-recent) .yst-chip {
+  padding: 0 12px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--yst-outline-variant);
+}
+
+#yst-panel .yst-picks .yst-chip > .yst-icon {
+  display: none;
+  color: inherit;
+}
+
+#yst-panel .yst-picks .yst-chip[aria-pressed='true'] {
+  padding-left: 8px;
+  box-shadow: none;
+}
+
+#yst-panel .yst-picks .yst-chip[aria-pressed='true'] > .yst-icon {
+  display: block;
+}
+
+/* Recent topics: neutral chips that shrink, cutting long topics off with an ellipsis */
+#yst-panel .yst-recent .yst-chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 240px;
+  color: var(--yst-on-surface-variant);
+}
+
+#yst-panel .yst-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#yst-panel.yst-start > .yst-error {
+  margin-top: 12px;
+}
+
+/* Narrow windows: Topic on its own row, then Minutes + Start, then the chips. The
+   header's labelled buttons become icon buttons with a tooltip. */
+@media (max-width: 720px) {
+  #yst-panel .yst-start-grid {
+    grid-template-columns: 112px minmax(0, 1fr);
+    grid-template-areas:
+      'topic   topic'
+      'minutes start'
+      'picks   picks';
+  }
+
+  #yst-panel .yst-start-grid.yst-has-recent {
+    grid-template-areas:
+      'topic   topic'
+      'recent  recent'
+      'minutes start'
+      'picks   picks';
+  }
+
+  #yst-panel .yst-button.yst-collapsible {
+    width: 40px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  #yst-panel .yst-collapsible > .yst-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  #yst-panel .yst-collapsible > .yst-button-label {
+    display: none;
+  }
+
+  /* Same tooltip as theme.css's icon buttons */
+  #yst-panel .yst-collapsible[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: 0;
+    z-index: 10;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--yst-inverse-surface);
+    color: var(--yst-inverse-on-surface);
+    font: 400 12px/16px var(--yst-font);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 150ms var(--yst-ease);
+  }
+
+  #yst-panel .yst-collapsible[data-tooltip]:hover::after {
+    opacity: 1;
+    transition-delay: 500ms;
+  }
+
+  #yst-panel .yst-collapsible[data-tooltip]:focus-visible::after {
+    opacity: 1;
+  }
+
+  #yst-panel .yst-goals .yst-goal {
+    min-width: 0;
+  }
+}
+
+/* One goal: "Today  25 m / 1 h" with a thin progress line, as a 40px outlined chip */
 #yst-panel .yst-goal {
   position: relative;
   display: inline-flex;
@@ -300,11 +456,11 @@ html[dark] #yst-panel {
   gap: 4px;
   box-sizing: border-box;
   min-width: 150px;
-  height: 32px;
+  height: 40px;
   margin: 0;
   padding: 0 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: inset 0 0 0 1px var(--yst-outline);
   background: transparent;
   color: var(--yst-on-surface);
