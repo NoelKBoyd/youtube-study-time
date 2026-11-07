@@ -1,48 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="yst-theme">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>YouTube Study Time - Settings</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <h1>YouTube Study Time - Settings</h1>
+  <main class="settings">
+    <header class="settings-header">
+      <p class="yst-label-large settings-eyebrow">YouTube Study Time</p>
+      <h1 class="yst-headline-small">Settings</h1>
+    </header>
 
-  <section>
-    <h2>YouTube API key</h2>
-    <p>
-      The study feed uses the YouTube Data API. You need your own free API key,
-      so the daily limit is yours alone.
-    </p>
-    <ol>
-      <li>Open the <a href="https://console.cloud.google.com/projectcreate" target="_blank">Google Cloud Console</a> and create a project (free, no billing needed).</li>
-      <li>Enable <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">YouTube Data API v3</a> for that project.</li>
-      <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a>, click <b>Create credentials &rarr; API key</b>, and copy it.</li>
-      <li>Optional but recommended: edit the key and restrict it to <b>YouTube Data API v3</b>.</li>
-      <li>Paste it below and click Save.</li>
-    </ol>
+    <section class="yst-filled-card settings-section" aria-labelledby="key-heading">
+      <h2 id="key-heading" class="yst-title-large">YouTube Data API key</h2>
+      <p class="yst-body-medium yst-variant">
+        The study feed uses the YouTube Data API. You need your own free API key,
+        so the daily limit is yours alone.
+      </p>
+      <ol class="steps yst-body-medium">
+        <li>Open the <a class="yst-link" href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener">Google Cloud Console<span data-icon="open_in_new"></span></a> and create a project (free, no billing needed).</li>
+        <li>Enable <a class="yst-link" href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">YouTube Data API v3<span data-icon="open_in_new"></span></a> for that project.</li>
+        <li>Go to <a class="yst-link" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Credentials<span data-icon="open_in_new"></span></a>, click <b>Create credentials &rarr; API key</b>, and copy it.</li>
+        <li>Optional but recommended: edit the key and restrict it to <b>YouTube Data API v3</b>.</li>
+        <li>Paste it below and click Save.</li>
+      </ol>
 
-    <label for="api-key">API key</label>
-    <input id="api-key" type="password" autocomplete="off" spellcheck="false">
-    <div class="buttons">
-      <button id="save">Save</button>
-      <button id="test" class="secondary">Test key</button>
-    </div>
-    <p id="status" class="status"></p>
-  </section>
+      <div class="yst-field">
+        <span data-icon="key"></span>
+        <input id="api-key" class="yst-field-input" type="password" autocomplete="off" spellcheck="false" placeholder=" ">
+        <label for="api-key" class="yst-field-label">API key</label>
+        <button id="toggle-key" type="button" class="yst-icon-button" aria-label="Show key" aria-pressed="false" data-tooltip="Show key">
+          <span data-icon="visibility" class="show-icon"></span>
+          <span data-icon="visibility_off" class="hide-icon"></span>
+        </button>
+      </div>
+      <div class="settings-buttons">
+        <button id="save" type="button" class="yst-button">Save</button>
+        <button id="test" type="button" class="yst-button yst-outlined">Test key</button>
+      </div>
+      <div id="status" class="yst-banner" role="status" hidden></div>
+    </section>
 
-  <section>
-    <h2>Daily limit</h2>
-    <p>
-      By default a key gets 100 searches per day. Each new page of results
-      (up to 50 videos) is one search. Results are saved for 24 hours, so
-      repeating a topic is free. The limit resets at midnight Pacific time.
-      Testing the key uses one search.
-    </p>
-    <button id="clear-cache" class="secondary">Clear saved results</button>
-    <p id="cache-status" class="status"></p>
-  </section>
+    <section class="yst-filled-card settings-section" aria-labelledby="limit-heading">
+      <h2 id="limit-heading" class="yst-title-large">Daily limit</h2>
+      <p class="yst-body-medium yst-variant">
+        By default a key gets 100 searches per day. Each new page of results
+        (up to 50 videos) is one search.
+      </p>
+      <p class="yst-body-medium yst-variant">
+        Results are saved for 24 hours, so repeating a topic is free. The limit
+        resets at midnight Pacific time. Testing the key uses one search.
+      </p>
+      <div class="settings-buttons">
+        <button id="clear-cache" type="button" class="yst-button yst-outlined"><span data-icon="delete_sweep"></span>Clear saved results</button>
+      </div>
+    </section>
+  </main>
 
+  <script src="ui.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

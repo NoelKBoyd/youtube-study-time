@@ -15,9 +15,9 @@ A full list of what the extension does today (v1.1.0), followed by the gaps that
 
 ## Controls
 
-- **Toolbar popup:** the start form when no session is running. During a session it shows the topic, a live countdown and a **Stop early** button. It warns you, with a link to settings, if no API key is set. Its footer shows today's session time and a **View stats** link.
+- **Toolbar popup:** the start form when no session is running. During a session it shows the topic, a live countdown and a **Stop early** button. It warns you, with a link to settings, if no API key is set. It shows today's session time (with the daily goal's progress when one is set), and its footer has **View stats** and **Settings**.
 - **Edit button on the panel** (on the YouTube page itself): change the topic or the minutes left, or **Stop session**, without opening the popup. Esc or Cancel closes it.
-- **Start bar on the home page** when no session is running. It sits inside YouTube's feed, just above the videos. Its **×** hides it for that tab only.
+- **Start bar on the home page** when no session is running. It sits inside YouTube's feed, just above the videos. Quick-pick chips (15, 25, 45, 60 min) fill in the minutes, and up to three recent topics fill in the topic. Its **×** hides it for that tab only.
 - **Typing in the forms doesn't trigger YouTube's shortcuts** (k, j, f, / and so on).
 
 ## Stats, goals and topic mastery
@@ -30,7 +30,7 @@ A full list of what the extension does today (v1.1.0), followed by the gaps that
 - **Topics table:** total time, sessions, last studied and level, sortable by any column. "Rust" and " rust " are the same topic.
 - **Mastery levels:** Spark (0 h), Curious (1 h), Steady (5 h), Focused (20 h), Deep (50 h), Mastery (100 h).
 - **Constellation:** each topic is a star on a night sky, bigger and brighter (with sparkles from level 4) as it levels up. Hover, focus or click a star for its total and the time to the next level. A completed session makes its star twinkle. Stars keep their place as new topics appear.
-- **History**, newest first, 50 at a time, with a delete button per entry, **Clear history** (asks first) and **Export JSON**.
+- **History**, newest first, 50 at a time, with a delete button per entry, **Clear history** (asks first, in a dialog) and **Export JSON**.
 - Stopping early is never punished: stopped sessions still count towards totals and levels.
 
 ## What gets hidden during a session
@@ -61,6 +61,7 @@ A full list of what the extension does today (v1.1.0), followed by the gaps that
 - **Settings page** with step-by-step setup for a free YouTube Data API v3 key, **Save** and **Test key** buttons, and specific messages for an invalid key, the API not being enabled, quota used up, or a network error.
 - **Results are saved for 24 hours**, per topic and page, so repeating a topic costs no quota. Topics are matched regardless of capitalization. Old entries are cleared each time a session starts.
 - **Clear saved results** button, which reports how many pages it removed.
+- **Test key** shows its result inline, under the key; saving the key is confirmed at the bottom of the page.
 - **Explains the quota:** about 100 searches a day, one per 50-video page, reset at midnight Pacific time.
 
 ## Privacy and safety

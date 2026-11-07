@@ -22,8 +22,8 @@
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
-      "js": ["shared.js", "content.js"],
-      "css": ["content.css"],
+      "js": ["shared.js", "ui.js", "content.js"],
+      "css": ["theme.css", "content.css"],
       "run_at": "document_idle"
     }
   ],

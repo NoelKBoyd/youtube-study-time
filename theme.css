@@ -1,0 +1,730 @@
+/* YouTube Study Time - the one design system (Material 3 style).
+
+   Used by the popup, stats and settings pages (<html class="yst-theme">) and, injected
+   next to content.css, by the study panel on YouTube (#yst-panel). So everything here
+   is scoped: tokens sit on .yst-theme / #yst-panel, and every component class starts
+   with "yst-", so nothing in this file can touch YouTube's own page.
+
+   Light and dark: each colour token is written once with light-dark(), which picks a
+   value from the `color-scheme` of the element that uses it. The pages follow the
+   system setting (color-scheme: light dark, below); content.css pins the panel to
+   YouTube's own theme instead.
+
+   No @font-face here on purpose: the pages load Roboto from fonts.css, and the panel
+   uses the Roboto that YouTube already loads. Sizes are in px, never rem, because
+   YouTube sets its root font size to 10px. */
+
+/* ---------- Tokens ---------- */
+
+.yst-theme,
+#yst-panel {
+  /*                                light     dark */
+  --yst-surface:                    light-dark(#f8fafd, #131314);
+  --yst-surface-container:          light-dark(#f0f4f9, #1e1f20);
+  --yst-surface-container-high:     light-dark(#e9eef6, #282a2c);
+  --yst-surface-container-highest:  light-dark(#dde3ea, #333537);
+  --yst-on-surface:                 light-dark(#1f1f1f, #e3e3e3);
+  --yst-on-surface-variant:         light-dark(#444746, #c4c7c5);
+  --yst-outline:                    light-dark(#747775, #8e918f);
+  --yst-outline-variant:            light-dark(#c4c7c5, #444746);
+  --yst-primary:                    light-dark(#146c2e, #6dd58c);
+  --yst-on-primary:                 light-dark(#ffffff, #003919);
+  --yst-primary-container:          light-dark(#c4eed0, #0f5223);
+  --yst-on-primary-container:       light-dark(#072711, #c4eed0);
+  --yst-link:                       light-dark(#0b57d0, #a8c7fa);
+  --yst-error:                      light-dark(#b3261e, #f2b8b5);
+  --yst-on-error:                   light-dark(#ffffff, #601410);
+  --yst-error-container:            light-dark(#f9dedc, #601410);
+  --yst-on-error-container:         light-dark(#410e0b, #f9dedc);
+  --yst-accent-amber:               light-dark(#b06000, #fdd663);
+  --yst-inverse-surface:            light-dark(#303030, #e3e3e3);
+  --yst-inverse-on-surface:         light-dark(#f2f2f2, #303030);
+
+  --yst-font: Roboto, Arial, sans-serif;
+  --yst-ease: cubic-bezier(0.2, 0, 0, 1);
+  /* What is behind a text field, so its floating label can cut through the outline.
+     Cards and the panel set it to their own background. */
+  --yst-field-bg: var(--yst-surface);
+}
+
+html.yst-theme {
+  color-scheme: light dark;
+}
+
+/* ---------- Page base (extension pages only) ---------- */
+
+.yst-theme body {
+  margin: 0;
+  background: var(--yst-surface);
+  color: var(--yst-on-surface);
+  font: 400 14px/20px var(--yst-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.yst-theme *,
+.yst-theme *::before,
+.yst-theme *::after {
+  box-sizing: border-box;
+}
+
+/* Zero specificity, so any component class wins over it. */
+:where(.yst-theme) :where(h1, h2, h3, p, ol, ul) {
+  margin: 0;
+}
+
+/* ---------- Typography ---------- */
+
+.yst-headline-small { font: 400 24px/32px var(--yst-font); }
+.yst-title-large    { font: 400 22px/28px var(--yst-font); }
+.yst-title-medium   { font: 500 16px/24px var(--yst-font); letter-spacing: 0.15px; }
+.yst-body-large     { font: 400 16px/24px var(--yst-font); letter-spacing: 0.5px; }
+.yst-body-medium    { font: 400 14px/20px var(--yst-font); letter-spacing: 0.25px; }
+.yst-label-large    { font: 500 14px/20px var(--yst-font); letter-spacing: 0.1px; }
+.yst-label-medium   { font: 500 12px/16px var(--yst-font); letter-spacing: 0.5px; }
+.yst-variant        { color: var(--yst-on-surface-variant); }
+
+.yst-link {
+  color: var(--yst-link);
+  text-decoration: none;
+}
+
+.yst-link:hover {
+  text-decoration: underline;
+}
+
+.yst-link .yst-icon {
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  vertical-align: -3px;
+}
+
+.yst-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.yst-theme [hidden],
+#yst-panel [hidden] {
+  display: none !important;
+}
+
+/* ---------- Icons (made by makeIcon() in ui.js) ---------- */
+
+.yst-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+/* ---------- Focus ---------- */
+
+.yst-theme :focus-visible,
+#yst-panel :focus-visible {
+  outline: 2px solid var(--yst-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Card ---------- */
+
+/* A filled tonal surface: no border, no shadow. (Not ".yst-card": that is a video card in the panel.) */
+.yst-filled-card {
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--yst-surface-container);
+  --yst-field-bg: var(--yst-surface-container);
+}
+
+/* ---------- State layers ----------
+   A see-through layer of the content colour: 8% on hover, 10% on focus and press. */
+
+.yst-button,
+.yst-icon-button,
+button.yst-chip {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.yst-button::before,
+.yst-icon-button::before,
+button.yst-chip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms var(--yst-ease);
+}
+
+:is(.yst-button, .yst-icon-button, button.yst-chip):hover::before {
+  opacity: 0.08;
+}
+
+:is(.yst-button, .yst-icon-button, button.yst-chip):is(:focus-visible, :active)::before {
+  opacity: 0.1;
+}
+
+:is(.yst-button, .yst-icon-button, button.yst-chip):disabled::before {
+  opacity: 0;
+}
+
+/* ---------- Buttons ----------
+   <button class="yst-button"> is filled. Add yst-tonal, yst-outlined or yst-text for
+   the other variants, and yst-danger for the error colour. A leading icon is an
+   .yst-icon placed before the label. */
+
+.yst-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 40px;
+  margin: 0;
+  padding: 0 24px;
+  border: none;
+  border-radius: 20px;
+  background: var(--yst-primary);
+  color: var(--yst-on-primary);
+  font: 500 14px/20px var(--yst-font);
+  letter-spacing: 0.1px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms var(--yst-ease), color 150ms var(--yst-ease);
+}
+
+.yst-button:has(> .yst-icon:first-child) {
+  padding-left: 16px;
+}
+
+.yst-button > .yst-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.yst-button.yst-tonal {
+  background: var(--yst-primary-container);
+  color: var(--yst-on-primary-container);
+}
+
+.yst-button.yst-outlined {
+  background: transparent;
+  color: var(--yst-primary);
+  box-shadow: inset 0 0 0 1px var(--yst-outline);
+}
+
+.yst-button.yst-text {
+  padding: 0 12px;
+  background: transparent;
+  color: var(--yst-primary);
+}
+
+.yst-button.yst-text:has(> .yst-icon:first-child) {
+  padding: 0 16px 0 12px;
+}
+
+.yst-button.yst-danger {
+  color: var(--yst-error);
+}
+
+.yst-button.yst-danger-filled {
+  background: var(--yst-error);
+  color: var(--yst-on-error);
+}
+
+.yst-button:disabled {
+  background: color-mix(in srgb, var(--yst-on-surface) 12%, transparent);
+  color: color-mix(in srgb, var(--yst-on-surface) 38%, transparent);
+  box-shadow: none;
+  cursor: default;
+}
+
+.yst-button:is(.yst-text, .yst-outlined):disabled {
+  background: transparent;
+}
+
+.yst-button.yst-outlined:disabled {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--yst-on-surface) 12%, transparent);
+}
+
+/* ---------- Icon button ----------
+   Always give it an aria-label. data-tooltip shows a small tooltip on hover/focus. */
+
+.yst-icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--yst-on-surface-variant);
+  cursor: pointer;
+  transition: color 150ms var(--yst-ease);
+}
+
+.yst-icon-button.yst-danger:hover,
+.yst-icon-button.yst-danger:focus-visible {
+  color: var(--yst-error);
+}
+
+.yst-icon-button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 10;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--yst-inverse-surface);
+  color: var(--yst-inverse-on-surface);
+  font: 400 12px/16px var(--yst-font);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms var(--yst-ease);
+}
+
+.yst-icon-button[data-tooltip]:hover::after {
+  opacity: 1;
+  transition-delay: 500ms;
+}
+
+.yst-icon-button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+}
+
+/* ---------- Outlined text field ----------
+   <label class="yst-field">
+     <input class="yst-field-input" placeholder=" ">   (a placeholder is required)
+     <span class="yst-field-label">Label</span>
+     <span class="yst-field-suffix" aria-hidden="true">min</span>   (optional)
+   </label>
+   The label floats onto the outline while the field has focus or a value. A real
+   placeholder is only shown once the field has focus. A leading .yst-icon goes before
+   the input; a trailing .yst-icon-button goes after the label. With those, use a <div>
+   and <label for> instead of the wrapping <label>. */
+
+.yst-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 56px;
+  margin: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--yst-outline);
+  color: var(--yst-on-surface);
+  cursor: text;
+  transition: box-shadow 150ms var(--yst-ease);
+}
+
+.yst-field:hover {
+  box-shadow: inset 0 0 0 1px var(--yst-on-surface);
+}
+
+.yst-field:focus-within {
+  box-shadow: inset 0 0 0 2px var(--yst-primary);
+}
+
+.yst-field:has(.yst-field-input:user-invalid) {
+  box-shadow: inset 0 0 0 2px var(--yst-error);
+}
+
+.yst-field-input {
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: 400 16px/24px var(--yst-font);
+  letter-spacing: 0.5px;
+  outline: none;
+  appearance: textfield;
+}
+
+.yst-theme .yst-field-input:focus-visible,
+#yst-panel .yst-field-input:focus-visible {
+  outline: none; /* the field's 2px primary outline shows focus */
+}
+
+.yst-field-input::-webkit-outer-spin-button,
+.yst-field-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.yst-field-input::placeholder {
+  color: transparent;
+}
+
+.yst-field-input:focus::placeholder {
+  color: var(--yst-on-surface-variant);
+}
+
+.yst-field-label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  padding: 0 4px;
+  overflow: hidden;
+  background: var(--yst-field-bg);
+  color: var(--yst-on-surface-variant);
+  font: 400 16px/24px var(--yst-font);
+  letter-spacing: 0.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: top 150ms var(--yst-ease), font-size 150ms var(--yst-ease),
+    line-height 150ms var(--yst-ease), color 150ms var(--yst-ease), left 150ms var(--yst-ease);
+}
+
+.yst-field-input:is(:focus, :not(:placeholder-shown)) ~ .yst-field-label {
+  top: 0;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+}
+
+.yst-field:focus-within .yst-field-label {
+  color: var(--yst-primary);
+}
+
+.yst-field:has(.yst-field-input:user-invalid) .yst-field-label {
+  color: var(--yst-error);
+}
+
+.yst-field-suffix {
+  flex: none;
+  padding-right: 16px;
+  color: var(--yst-on-surface-variant);
+  font: 400 16px/24px var(--yst-font);
+  pointer-events: none;
+}
+
+.yst-field:has(> .yst-field-suffix) .yst-field-input {
+  padding-right: 4px;
+}
+
+/* The suffix appears with the floating label, so it never collides with the resting one. */
+.yst-field-input:placeholder-shown:not(:focus) ~ .yst-field-suffix {
+  visibility: hidden;
+}
+
+.yst-field > .yst-icon:first-child {
+  margin-left: 12px;
+  color: var(--yst-on-surface-variant);
+}
+
+.yst-field:has(> .yst-icon:first-child) .yst-field-label {
+  left: 48px;
+}
+
+.yst-field:has(> .yst-icon:first-child) .yst-field-input:is(:focus, :not(:placeholder-shown)) ~ .yst-field-label {
+  left: 12px;
+}
+
+.yst-field > .yst-icon-button {
+  margin-right: 4px;
+}
+
+.yst-field:has(> .yst-icon-button) .yst-field-input {
+  padding-right: 4px;
+}
+
+.yst-field-support {
+  margin: 4px 16px 0;
+  color: var(--yst-on-surface-variant);
+  font: 400 12px/16px var(--yst-font);
+  letter-spacing: 0.4px;
+}
+
+/* Compact (40px) field for tables, with no floating label: give the input an aria-label.
+   Its placeholder shows as normal. */
+.yst-field.yst-field-compact {
+  height: 40px;
+}
+
+.yst-field-compact .yst-field-input {
+  padding: 0 4px 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.yst-field-compact .yst-field-input::placeholder {
+  color: var(--yst-on-surface-variant);
+}
+
+.yst-field-compact .yst-field-suffix {
+  padding-right: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ---------- Chips ----------
+   Assist/filter chips are <button class="yst-chip">; status chips are
+   <span class="yst-chip yst-status-chip">. aria-pressed="true" marks a selected filter. */
+
+.yst-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 32px;
+  margin: 0;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--yst-outline);
+  background: transparent;
+  color: var(--yst-on-surface);
+  font: 500 14px/20px var(--yst-font);
+  letter-spacing: 0.1px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+button.yst-chip {
+  cursor: pointer;
+}
+
+.yst-chip:has(> .yst-icon:first-child) {
+  padding-left: 8px;
+}
+
+.yst-chip > .yst-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--yst-primary);
+}
+
+.yst-chip[aria-pressed='true'] {
+  box-shadow: none;
+  background: var(--yst-primary-container);
+  color: var(--yst-on-primary-container);
+}
+
+.yst-chip.yst-status-chip {
+  box-shadow: none;
+  padding: 0 12px;
+  background: var(--yst-surface-container-highest);
+  color: var(--yst-on-surface-variant);
+}
+
+.yst-chip.yst-status-chip:has(> .yst-icon:first-child) {
+  padding-left: 8px;
+}
+
+.yst-chip.yst-status-chip > .yst-icon {
+  color: inherit;
+}
+
+/* ---------- Linear progress ---------- */
+
+.yst-progress {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--yst-surface-container-highest);
+  overflow: hidden;
+}
+
+.yst-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--yst-primary);
+  transition: width 250ms var(--yst-ease);
+}
+
+/* ---------- Data table ---------- */
+
+.yst-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--yst-on-surface);
+  font: 400 14px/20px var(--yst-font);
+  letter-spacing: 0.25px;
+}
+
+.yst-table :is(th, td) {
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--yst-outline-variant);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.yst-table thead th {
+  color: var(--yst-on-surface-variant);
+  font: 500 12px/16px var(--yst-font);
+  letter-spacing: 0.5px;
+}
+
+.yst-table tbody th {
+  font-weight: 500;
+}
+
+.yst-table tbody tr {
+  transition: background-color 150ms var(--yst-ease);
+}
+
+.yst-table tbody tr:hover {
+  background: color-mix(in srgb, var(--yst-on-surface) 8%, transparent);
+}
+
+.yst-table tbody tr:last-child > * {
+  border-bottom: none;
+}
+
+.yst-table .yst-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Banner (inline status) ---------- */
+
+.yst-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--yst-surface-container-high);
+  color: var(--yst-on-surface);
+  font: 400 14px/20px var(--yst-font);
+  letter-spacing: 0.25px;
+}
+
+.yst-banner > .yst-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.yst-banner.yst-success {
+  background: var(--yst-primary-container);
+  color: var(--yst-on-primary-container);
+}
+
+.yst-banner.yst-error {
+  background: var(--yst-error-container);
+  color: var(--yst-on-error-container);
+}
+
+/* ---------- Dialog ---------- */
+
+.yst-dialog {
+  box-sizing: border-box;
+  width: min(480px, calc(100vw - 48px));
+  padding: 24px;
+  border: none;
+  border-radius: 28px;
+  background: var(--yst-surface-container-high);
+  color: var(--yst-on-surface);
+}
+
+.yst-dialog[open] {
+  animation: yst-dialog-in 250ms var(--yst-ease);
+}
+
+.yst-dialog::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.yst-dialog-icon {
+  display: block;
+  margin: 0 auto 16px;
+  color: var(--yst-error);
+}
+
+.yst-dialog-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font: 400 24px/32px var(--yst-font);
+}
+
+.yst-dialog-body {
+  margin: 0;
+  color: var(--yst-on-surface-variant);
+  font: 400 14px/20px var(--yst-font);
+  letter-spacing: 0.25px;
+}
+
+.yst-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+@keyframes yst-dialog-in {
+  from { opacity: 0; transform: scale(0.95); }
+}
+
+/* ---------- Snackbar (showSnackbar() in ui.js) ---------- */
+
+.yst-snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 1000;
+  box-sizing: border-box;
+  min-width: min(288px, calc(100vw - 32px));
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--yst-inverse-surface);
+  color: var(--yst-inverse-on-surface);
+  font: 400 14px/20px var(--yst-font);
+  letter-spacing: 0.25px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 16px);
+  transition: opacity 200ms var(--yst-ease), transform 200ms var(--yst-ease), visibility 200ms;
+}
+
+.yst-snackbar.yst-show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .yst-theme *,
+  .yst-theme *::before,
+  .yst-theme *::after,
+  #yst-panel,
+  #yst-panel *,
+  #yst-panel *::before,
+  #yst-panel *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation: none !important;
+  }
+}

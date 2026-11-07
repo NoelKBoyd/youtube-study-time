@@ -211,6 +211,62 @@ test('home page with no session: a start bar starts one with the last values', a
   page.close();
 });
 
+test('start bar quick-pick chips fill the Minutes field and show which one matches', async () => {
+  const page = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE, storage: { lastTopic: 'physics', lastMinutes: 25 } });
+  await flush();
+  const bar = page.document.querySelector('.yst-start');
+  const minutesInput = bar.querySelectorAll('input')[1];
+  const chips = [...bar.querySelectorAll('.yst-picks .yst-chip')];
+  const pressed = () => chips.filter((chip) => chip.getAttribute('aria-pressed') === 'true').map((chip) => chip.textContent);
+  assert.deepEqual(chips.map((chip) => chip.textContent), ['15 min', '25 min', '45 min', '60 min']);
+  assert.deepEqual(pressed(), ['25 min']);
+
+  chips[3].click();
+  assert.equal(minutesInput.value, '60');
+  assert.deepEqual(pressed(), ['60 min']);
+
+  minutesInput.value = '50';
+  minutesInput.dispatchEvent(new page.window.Event('input'));
+  assert.deepEqual(pressed(), []);
+
+  chips[0].click();
+  bar.requestSubmit();
+  await flush();
+  assert.equal(page.chrome.runtime.sentMessages.at(-1).minutes, 15);
+  page.close();
+});
+
+test('start bar offers up to 3 recent topics that fill the Topic field', async () => {
+  const now = Date.now();
+  const entry = (id, topic, ago) => ({ id, topic, topicKey: topic.toLowerCase(), endedAt: now - ago, actualMin: 5 });
+  const page = loadContent({
+    url: 'https://www.youtube.com/',
+    html: HOME_PAGE,
+    storage: {
+      sessionLog: [
+        entry('a', 'Rust', 5000),
+        entry('b', 'Physics', 1000),
+        entry('c', 'physics', 4000), // same topic as b, listed once
+        entry('d', 'Chemistry', 2000),
+        entry('e', 'Biology', 3000)
+      ]
+    }
+  });
+  await flush();
+  const bar = page.document.querySelector('.yst-start');
+  const chips = [...bar.querySelectorAll('.yst-recent .yst-chip')];
+  assert.deepEqual(chips.map((chip) => chip.textContent), ['Physics', 'Chemistry', 'Biology']);
+  assert.ok(bar.querySelector('.yst-start-grid').classList.contains('yst-has-recent'));
+  chips[1].click();
+  assert.equal(bar.querySelector('input').value, 'Chemistry');
+  page.close();
+
+  const empty = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE });
+  await flush();
+  assert.equal(empty.document.querySelector('.yst-recent').hidden, true);
+  empty.close();
+});
+
 test('start bar with no goals: a "set your goals" button, and a Stats button', async () => {
   const page = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE });
   await flush();
@@ -238,7 +294,7 @@ test('start bar shows today and this week against the goals, and follows changes
   await flush();
   const goalTexts = () => [...page.document.querySelectorAll('.yst-goal')].map((g) => g.textContent);
   assert.deepEqual(goalTexts(), ['Today30 m / 1 h', 'This weekSet a goal']);
-  assert.equal(page.document.querySelector('.yst-goal-fill').style.width, '50%');
+  assert.equal(page.document.querySelector('.yst-goal .yst-progress-fill').style.width, '50%');
 
   await page.chrome.storage.local.set({ goals: { dailyMin: 30, weeklyMin: 120, perTopic: {} } });
   await flush();

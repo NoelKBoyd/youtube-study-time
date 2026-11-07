@@ -1,100 +1,136 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="yst-theme">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Study stats - YouTube Study Time</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="stats.css">
 </head>
 <body>
-  <header class="page-header">
-    <h1>Study stats</h1>
-    <p class="note">
-      All times are <b>session time</b>: how long a study session was running.
-      The extension can't tell whether you were watching.
-    </p>
-  </header>
+  <main class="page">
+    <header class="page-header">
+      <h1 class="yst-headline-small">Study stats</h1>
+      <p class="yst-body-medium yst-variant">
+        All times are <b>session time</b>: how long a study session was running.
+        The extension can't tell whether you were watching.
+      </p>
+    </header>
 
-  <section class="tiles" aria-label="Summary">
-    <div class="tile"><p class="tile-label">Today</p><p id="tile-today" class="tile-value">0 m</p></div>
-    <div class="tile"><p class="tile-label">This week</p><p id="tile-week" class="tile-value">0 m</p></div>
-    <div class="tile"><p class="tile-label">Current streak</p><p id="tile-streak" class="tile-value">0 days</p></div>
-    <div class="tile"><p class="tile-label">Best streak</p><p id="tile-best" class="tile-value">0 days</p></div>
-  </section>
-
-  <section class="card" aria-labelledby="goals-heading">
-    <h2 id="goals-heading">Goals</h2>
-    <div id="goal-bars" class="goal-bars"></div>
-    <form id="goals-form" class="goals-form">
-      <label>
-        Daily goal (minutes)
-        <input id="goal-daily" type="number" min="0" max="1440" step="5" placeholder="none">
-      </label>
-      <label>
-        Weekly goal (minutes)
-        <input id="goal-weekly" type="number" min="0" max="10080" step="15" placeholder="none">
-      </label>
-      <button type="submit">Save goals</button>
-      <span id="goals-status" class="status" role="status"></span>
-    </form>
-    <p id="streak-rule" class="hint"></p>
-  </section>
-
-  <section class="card" aria-labelledby="sky-heading">
-    <h2 id="sky-heading">Constellation</h2>
-    <p class="hint">Each topic is a star. It grows brighter as the topic levels up.</p>
-    <div id="sky" class="sky"></div>
-    <p id="levels-legend" class="legend"></p>
-  </section>
-
-  <section class="card" aria-labelledby="topics-heading">
-    <h2 id="topics-heading">Topics</h2>
-    <div class="table-wrap">
-      <table id="topics-table" class="data-table">
-        <thead>
-          <tr>
-            <th scope="col"><button type="button" class="sort" data-sort="topic">Topic</button></th>
-            <th scope="col" class="num"><button type="button" class="sort" data-sort="totalMin">Total</button></th>
-            <th scope="col" class="num"><button type="button" class="sort" data-sort="sessions">Sessions</button></th>
-            <th scope="col"><button type="button" class="sort" data-sort="lastAt">Last studied</button></th>
-            <th scope="col"><button type="button" class="sort" data-sort="level">Level</button></th>
-            <th scope="col">Target (hours)</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <p id="topics-empty" class="empty">No sessions yet. Topics show up here when a session ends.</p>
-  </section>
-
-  <section class="card" aria-labelledby="history-heading">
-    <div class="section-head">
-      <h2 id="history-heading">History</h2>
-      <div class="buttons">
-        <button id="export" type="button" class="secondary">Export JSON</button>
-        <button id="clear" type="button" class="danger">Clear history</button>
+    <section class="stat-grid" aria-label="Summary">
+      <div class="yst-filled-card stat-card">
+        <span class="stat-icon"><span data-icon="schedule"></span></span>
+        <p class="yst-label-large yst-variant">Today</p>
+        <p id="tile-today" class="stat-value">0 m</p>
       </div>
+      <div class="yst-filled-card stat-card">
+        <span class="stat-icon"><span data-icon="calendar_month"></span></span>
+        <p class="yst-label-large yst-variant">This week</p>
+        <p id="tile-week" class="stat-value">0 m</p>
+      </div>
+      <div class="yst-filled-card stat-card">
+        <span class="stat-icon stat-icon-amber"><span data-icon="local_fire_department"></span></span>
+        <p class="yst-label-large yst-variant">Current streak</p>
+        <p id="tile-streak" class="stat-value">0 days</p>
+      </div>
+      <div class="yst-filled-card stat-card">
+        <span class="stat-icon"><span data-icon="trophy"></span></span>
+        <p class="yst-label-large yst-variant">Best streak</p>
+        <p id="tile-best" class="stat-value">0 days</p>
+      </div>
+    </section>
+
+    <section class="yst-filled-card section" aria-labelledby="goals-heading">
+      <h2 id="goals-heading" class="yst-title-large">Goals</h2>
+      <div id="goal-bars" class="goal-bars"></div>
+      <form id="goals-form" class="goals-form">
+        <label class="yst-field goal-field">
+          <input id="goal-daily" class="yst-field-input" type="number" min="0" max="1440" step="5" placeholder="none">
+          <span class="yst-field-label">Daily goal</span>
+          <span class="yst-field-suffix" aria-hidden="true">min</span>
+        </label>
+        <label class="yst-field goal-field">
+          <input id="goal-weekly" class="yst-field-input" type="number" min="0" max="10080" step="15" placeholder="none">
+          <span class="yst-field-label">Weekly goal</span>
+          <span class="yst-field-suffix" aria-hidden="true">min</span>
+        </label>
+        <button type="submit" class="yst-button">Save goals</button>
+      </form>
+      <p id="streak-rule" class="yst-field-support streak-rule"></p>
+    </section>
+
+    <section class="yst-filled-card section" aria-labelledby="sky-heading">
+      <div>
+        <h2 id="sky-heading" class="yst-title-large">Constellation</h2>
+        <p class="yst-body-medium yst-variant">Each topic is a star. It grows brighter as the topic levels up.</p>
+      </div>
+      <div id="sky" class="sky"></div>
+      <div id="levels-legend" class="legend" aria-label="Levels"></div>
+    </section>
+
+    <section class="yst-filled-card section" aria-labelledby="topics-heading">
+      <h2 id="topics-heading" class="yst-title-large">Topics</h2>
+      <div class="table-wrap">
+        <table id="topics-table" class="yst-table">
+          <thead>
+            <tr>
+              <th scope="col"><button type="button" class="sort" data-sort="topic">Topic<span data-icon="arrow_upward" class="sort-icon"></span></button></th>
+              <th scope="col" class="yst-num"><button type="button" class="sort" data-sort="totalMin"><span data-icon="arrow_upward" class="sort-icon"></span>Total</button></th>
+              <th scope="col" class="yst-num"><button type="button" class="sort" data-sort="sessions"><span data-icon="arrow_upward" class="sort-icon"></span>Sessions</button></th>
+              <th scope="col"><button type="button" class="sort" data-sort="lastAt">Last studied<span data-icon="arrow_upward" class="sort-icon"></span></button></th>
+              <th scope="col"><button type="button" class="sort" data-sort="level">Level<span data-icon="arrow_upward" class="sort-icon"></span></button></th>
+              <th scope="col">Target (hours)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="topics-empty" class="empty-state">No sessions yet. Topics show up here when a session ends.</p>
+    </section>
+
+    <section class="yst-filled-card section" aria-labelledby="history-heading">
+      <div class="section-head">
+        <h2 id="history-heading" class="yst-title-large">History</h2>
+        <div class="section-actions">
+          <button id="export" type="button" class="yst-button yst-outlined"><span data-icon="download"></span>Export JSON</button>
+          <button id="clear" type="button" class="yst-button yst-text yst-danger"><span data-icon="delete"></span>Clear history</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="history-table" class="yst-table">
+          <thead>
+            <tr>
+              <th scope="col">Ended</th>
+              <th scope="col">Topic</th>
+              <th scope="col" class="yst-num">Planned</th>
+              <th scope="col" class="yst-num">Session time</th>
+              <th scope="col">Outcome</th>
+              <th scope="col"><span class="yst-visually-hidden">Delete</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="history-empty" class="empty-state">No sessions yet.</p>
+      <button id="more" type="button" class="yst-button yst-text more" hidden><span data-icon="keyboard_arrow_down"></span>Show more</button>
+    </section>
+  </main>
+
+  <dialog id="clear-dialog" class="yst-dialog" aria-labelledby="clear-dialog-title" aria-describedby="clear-dialog-body">
+    <span data-icon="delete" class="yst-dialog-icon"></span>
+    <h2 id="clear-dialog-title" class="yst-dialog-title">Delete your whole session history?</h2>
+    <p id="clear-dialog-body" class="yst-dialog-body">
+      Totals, streaks and the constellation start again from zero. This cannot be undone.
+    </p>
+    <div class="yst-dialog-actions">
+      <button id="clear-cancel" type="button" class="yst-button yst-text" autofocus>Cancel</button>
+      <button id="clear-confirm" type="button" class="yst-button yst-danger-filled">Clear history</button>
     </div>
-    <div class="table-wrap">
-      <table id="history-table" class="data-table">
-        <thead>
-          <tr>
-            <th scope="col">Ended</th>
-            <th scope="col">Topic</th>
-            <th scope="col" class="num">Planned</th>
-            <th scope="col" class="num">Session time</th>
-            <th scope="col">Outcome</th>
-            <th scope="col"><span class="visually-hidden">Delete</span></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <p id="history-empty" class="empty">No sessions yet.</p>
-    <button id="more" type="button" class="secondary more" hidden>Show more</button>
-  </section>
+  </dialog>
 
   <script src="shared.js"></script>
+  <script src="ui.js"></script>
   <script src="constellation.js"></script>
   <script src="stats.js"></script>
 </body>

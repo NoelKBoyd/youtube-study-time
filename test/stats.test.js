@@ -4,7 +4,7 @@ import { loadPage, flush, closeAllPages } from './load.js';
 
 afterEach(closeAllPages);
 
-const STATS_SCRIPTS = ['shared.js', 'constellation.js', 'stats.js'];
+const STATS_SCRIPTS = ['shared.js', 'ui.js', 'constellation.js', 'stats.js'];
 
 // Midday `daysAgo` local days back (or now, if today's midday hasn't come yet).
 function dayAt(daysAgo) {
@@ -152,7 +152,7 @@ test('goals: saving daily and weekly minutes shows progress bars', async () => {
   const bars = doc.querySelectorAll('#goal-bars .goal');
   assert.equal(bars.length, 1);
   assert.match(bars[0].textContent, /15 m of 30 m/);
-  assert.equal(bars[0].querySelector('.bar-fill').style.width, '50%');
+  assert.equal(bars[0].querySelector('.yst-progress-fill').style.width, '50%');
   assert.match(text(page, 'streak-rule'), /reaches 30 m/);
 });
 
@@ -165,7 +165,7 @@ test('a per-topic target is saved in minutes and shown on the topic row', async 
   assert.deepEqual(page.chrome._store.goals.perTopic, { rust: 120 });
   const row = rows(page, 'topics-table')[0];
   assert.equal(row.querySelector('.target-input').value, '2');
-  assert.equal(row.querySelector('.bar-fill').style.width, '50%');
+  assert.equal(row.querySelector('.target .yst-progress-fill').style.width, '50%');
 
   const cleared = page.document.querySelector('.target-input');
   cleared.value = '';
@@ -174,20 +174,29 @@ test('a per-topic target is saved in minutes and shown on the topic row', async 
   assert.deepEqual(page.chrome._store.goals.perTopic, {});
 });
 
-test('Clear history asks first, then the background clears it and everything resets', async () => {
+test('Clear history asks first in a dialog, then the background clears it and everything resets', async () => {
   const page = await openStats({ sessionLog: [record(0, 30), record(1, 30)] }, async (msg) => {
     if (msg.type === 'clearLog') await page.chrome.storage.local.set({ sessionLog: [] });
   });
+  // jsdom has <dialog> but not showModal()/close(); these stand-ins just toggle `open`.
+  const proto = page.window.HTMLDialogElement.prototype;
+  proto.showModal ||= function () { this.open = true; };
+  proto.close ||= function () { this.open = false; };
+  const doc = page.document;
+  const dialog = doc.getElementById('clear-dialog');
   assert.equal(text(page, 'tile-streak'), '2 days');
 
-  page.window.confirm = () => false;
-  page.document.getElementById('clear').click();
+  doc.getElementById('clear').click();
+  assert.equal(dialog.open, true);
+  doc.getElementById('clear-cancel').click();
   await flush();
+  assert.equal(dialog.open, false);
   assert.equal(page.chrome.runtime.sentMessages.length, 0);
 
-  page.window.confirm = () => true;
-  page.document.getElementById('clear').click();
+  doc.getElementById('clear').click();
+  doc.getElementById('clear-confirm').click();
   await flush();
+  assert.equal(dialog.open, false);
   assert.deepEqual(page.chrome.runtime.sentMessages, [{ type: 'clearLog' }]);
   assert.equal(text(page, 'tile-today'), '0 m');
   assert.equal(text(page, 'tile-streak'), '0 days');
@@ -260,7 +269,9 @@ test('the constellation has one star per topic, sized by level, with a levels le
   assert.equal(starFor(page, 'go').querySelectorAll('.sparkle').length, 2);
   assert.equal(starFor(page, 'rust').getAttribute('aria-label'), ' rust: 6 h 10 m session time. Level 3, Steady. 13 h 50 m to Focused.');
   assert.equal(starFor(page, 'rust').querySelector('.label').textContent, ' rust');
-  assert.match(text(page, 'levels-legend'), /1 Spark \(0 h\) · 2 Curious \(1 h\).*6 Mastery \(100 h\)/);
+  const legend = [...page.document.querySelectorAll('#levels-legend .legend-chip')].map((chip) => chip.textContent);
+  assert.equal(legend.length, 6);
+  assert.deepEqual([legend[0], legend[1], legend[5]], ['1 Spark · 0 h', '2 Curious · 1 h', '6 Mastery · 100 h']);
 });
 
 test('hovering a star shows its details; clicking keeps them open', async () => {
@@ -317,7 +328,7 @@ test('a session completed while the page is open twinkles its star', async () =>
 // ---------- Popup ----------
 
 test('popup shows today\'s session time and opens the stats page', async () => {
-  const page = loadPage('popup.html', ['shared.js', 'popup.js'], {
+  const page = loadPage('popup.html', ['shared.js', 'ui.js', 'popup.js'], {
     storage: { sessionLog: [record(0, 40), record(0, 20, { outcome: 'stopped' }), record(1, 99)] }
   });
   await flush();

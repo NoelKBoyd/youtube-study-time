@@ -3,6 +3,8 @@
 // and history. It writes only `goals`; deleting history goes through the background
 // worker, which owns sessionLog.
 
+fillIcons();
+
 const HISTORY_PAGE_SIZE = 50;
 const TWINKLE_WINDOW_MS = 10 * 60 * 1000; // a session that ended this recently twinkles on load
 
@@ -15,7 +17,7 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
-// Small DOM helper: make('td', { className: 'num' }, 'text', childNode, ...).
+// Small DOM helper: make('td', { className: 'yst-num' }, 'text', childNode, ...).
 // Text is always inserted with textContent, never as HTML.
 function make(tag, props = {}, ...children) {
   const element = document.createElement(tag);
@@ -140,10 +142,10 @@ function render() {
   const week = minutesBetween(log, startOfWeek(now), Infinity);
   const streaks = computeStreaks(log, goals, now);
 
-  $('tile-today').textContent = formatMinutes(today);
-  $('tile-week').textContent = formatMinutes(week);
-  $('tile-streak').textContent = plural(streaks.current, 'day');
-  $('tile-best').textContent = plural(streaks.best, 'day');
+  setStat($('tile-today'), formatMinutes(today));
+  setStat($('tile-week'), formatMinutes(week));
+  setStat($('tile-streak'), plural(streaks.current, 'day'));
+  setStat($('tile-best'), plural(streaks.best, 'day'));
 
   renderGoals(today, week);
   const topics = summarizeTopics(log, goals);
@@ -152,16 +154,23 @@ function render() {
   if (typeof renderConstellation === 'function') renderConstellation($('sky'), topics);
 }
 
+// "1 h 20 m" -> big "1", small " h ", big "20", small " m". The text stays the same.
+function setStat(element, text) {
+  element.replaceChildren(...text.split(/(\d+)/).filter(Boolean).map((part) =>
+    make('span', { className: /^\d+$/.test(part) ? 'stat-number' : 'stat-unit' }, part)
+  ));
+}
+
 function progressBar(label, doneMin, targetMin) {
-  const ratio = targetMin > 0 ? Math.min(1, doneMin / targetMin) : 0;
+  const ratio = targetMin > 0 ? Math.min(1, Math.max(0, doneMin / targetMin)) : 0;
   const bar = make('div', {
-    className: 'bar' + (ratio >= 1 ? ' done' : ''),
+    className: 'yst-progress',
     role: 'progressbar',
     'aria-label': label,
     'aria-valuemin': '0',
     'aria-valuemax': String(Math.round(targetMin)),
     'aria-valuenow': String(Math.round(Math.min(doneMin, targetMin)))
-  }, make('span', { className: 'bar-fill' }));
+  }, make('span', { className: 'yst-progress-fill' }));
   bar.firstChild.style.width = `${ratio * 100}%`;
   return bar;
 }
@@ -175,14 +184,15 @@ function renderGoals(today, week) {
     bars.append(
       make('div', { className: 'goal' },
         make('div', { className: 'goal-text' },
-          make('span', {}, label),
+          make('span', { className: 'yst-label-large' }, label),
+          done >= target ? make('span', { className: 'goal-done', title: 'Goal reached' }, makeIcon('check_circle')) : null,
           make('span', { className: 'goal-numbers' }, `${formatMinutes(done)} of ${formatMinutes(target)}`)
         ),
         progressBar(`${label} goal`, done, target)
       )
     );
   }
-  if (!bars.childElementCount) bars.append(make('p', { className: 'empty' }, 'No goals set yet.'));
+  if (!bars.childElementCount) bars.append(make('p', { className: 'empty-state' }, makeIcon('flag'), 'No goals set yet.'));
 
   // Don't overwrite what the user is typing.
   if (document.activeElement !== $('goal-daily')) $('goal-daily').value = dailyMin || '';
@@ -208,28 +218,49 @@ function renderTopics(topics) {
       type: 'number',
       min: '0',
       step: '0.5',
-      className: 'target-input',
+      className: 'yst-field-input target-input',
       placeholder: '—',
       value: topic.targetMin ? String(Math.round((topic.targetMin / 60) * 100) / 100) : '',
       'aria-label': `Target hours for ${topic.topic}`,
       dataset: { key: topic.key }
     });
-    const targetCell = make('td', { className: 'target' }, target);
+    const targetCell = make('td', { className: 'target' },
+      make('label', { className: 'yst-field yst-field-compact' },
+        target,
+        make('span', { className: 'yst-field-suffix', 'aria-hidden': 'true' }, 'h')
+      )
+    );
     if (topic.targetMin) {
       targetCell.append(progressBar(`${topic.topic} target`, topic.totalMin, topic.targetMin));
     }
     tbody.append(
       make('tr', {},
         make('th', { scope: 'row', className: 'topic-name' }, topic.topic),
-        make('td', { className: 'num' }, formatMinutes(topic.totalMin)),
-        make('td', { className: 'num' }, String(topic.sessions)),
+        make('td', { className: 'yst-num' }, formatMinutes(topic.totalMin)),
+        make('td', { className: 'yst-num' }, String(topic.sessions)),
         make('td', {}, formatDate(topic.lastAt)),
-        make('td', {}, make('span', { className: `level-badge level-${topic.level}` }, `${topic.level} · ${topic.levelInfo.name}`)),
+        make('td', {}, levelCell(topic)),
         targetCell
       )
     );
   }
 }
+
+// The level as a status chip (tonal at level 1, primary at the top), with a thin bar
+// showing the way to the next level.
+function levelCell(topic) {
+  const { level, name, hours, next } = topic.levelInfo;
+  const cell = make('div', { className: 'level' },
+    make('span', { className: `yst-chip yst-status-chip level-chip level-${level}` }, `${level} · ${name}`)
+  );
+  if (next) {
+    const fromMin = hours * 60;
+    cell.append(progressBar(`Progress to ${next.name}`, topic.totalMin - fromMin, next.hours * 60 - fromMin));
+  }
+  return cell;
+}
+
+const OUTCOME_ICONS = { completed: 'check_circle', stopped: 'stop_circle' };
 
 function renderHistory() {
   const records = [...state.log].sort((a, b) => b.endedAt - a.endedAt);
@@ -245,17 +276,19 @@ function renderHistory() {
       make('tr', {},
         make('td', {}, formatDate(record.endedAt, true)),
         make('th', { scope: 'row', className: 'topic-name' }, record.topic),
-        make('td', { className: 'num' }, formatMinutes(record.plannedMin)),
-        make('td', { className: 'num' }, formatMinutes(record.actualMin)),
-        make('td', {}, make('span', { className: `outcome ${record.outcome}` }, record.outcome)),
+        make('td', { className: 'yst-num' }, formatMinutes(record.plannedMin)),
+        make('td', { className: 'yst-num' }, formatMinutes(record.actualMin)),
         make('td', {},
+          make('span', { className: `yst-chip yst-status-chip outcome ${record.outcome}` },
+            makeIcon(OUTCOME_ICONS[record.outcome] || 'error'), record.outcome)
+        ),
+        make('td', { className: 'row-action' },
           make('button', {
             type: 'button',
-            className: 'icon delete',
-            title: 'Delete this entry',
-            'aria-label': `Delete ${record.topic} session from ${formatDate(record.endedAt, true)}`,
-            dataset: { id: record.id }
-          }, '×')
+            className: 'yst-icon-button yst-danger delete',
+            'aria-label': `Delete session: ${record.topic}, ${formatDate(record.endedAt, true)}`,
+            dataset: { id: record.id, tooltip: 'Delete session' }
+          }, makeIcon('delete'))
         )
       )
     );
@@ -279,8 +312,7 @@ function readMinutes(input, scale = 1) {
 $('goals-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   await saveGoals({ ...state.goals, dailyMin: readMinutes($('goal-daily')), weeklyMin: readMinutes($('goal-weekly')) });
-  $('goals-status').textContent = 'Saved.';
-  setTimeout(() => ($('goals-status').textContent = ''), 2000);
+  showSnackbar('Goals saved.');
   render();
 });
 
@@ -316,8 +348,11 @@ $('more').addEventListener('click', () => {
   renderHistory();
 });
 
-$('clear').addEventListener('click', () => {
-  if (!confirm('Delete your whole session history? Totals, streaks and the constellation start again from zero. This cannot be undone.')) return;
+// Clear history asks first, in a dialog. Esc or Cancel closes it without clearing.
+$('clear').addEventListener('click', () => $('clear-dialog').showModal());
+$('clear-cancel').addEventListener('click', () => $('clear-dialog').close());
+$('clear-confirm').addEventListener('click', () => {
+  $('clear-dialog').close();
   chrome.runtime.sendMessage({ type: 'clearLog' });
 });
 
@@ -362,8 +397,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 async function init() {
-  $('levels-legend').textContent =
-    'Levels: ' + LEVELS.map((level) => `${level.level} ${level.name} (${level.hours} h)`).join(' · ');
+  // One chip per level, with a star that grows with the level.
+  $('levels-legend').replaceChildren(...LEVELS.map((level) =>
+    make('span', { className: `yst-chip legend-chip level-${level.level}` },
+      makeIcon('star', 'legend-star'), `${level.level} ${level.name} · ${level.hours} h`)
+  ));
   applyStorage(await chrome.storage.local.get(['sessionLog', 'goals']));
   render();
   if (typeof twinkle !== 'function') return;

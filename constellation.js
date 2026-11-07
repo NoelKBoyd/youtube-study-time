@@ -7,7 +7,7 @@
 // Plain SVG, no libraries. Original artwork.
 
 const SKY_WIDTH = 800;
-const SKY_HEIGHT = 380;
+const SKY_HEIGHT = 320; // about 360px tall at the stats page's full width
 const SKY_MARGIN = 40;
 const MIN_STAR_GAP = 72; // preferred distance between stars, in SVG units
 const LABEL_ALL_UNDER = 15; // with more topics than this, only level 3+ stars get a label
@@ -68,15 +68,16 @@ function placeStars(topics) {
   return placed;
 }
 
-// Size and brightness grow with the level (1-6).
+// Size, glow and brightness grow with the level (1-6).
 function starShape(level) {
-  const core = 1.6 + level * 1.1;
+  const core = 2.4 + level * 1.2;
   return {
     core,
-    halo: core * 3.4,
-    haloOpacity: 0.1 + level * 0.09,
-    coreOpacity: 0.55 + level * 0.075,
-    sparkle: level >= 4 ? core * (1.6 + (level - 4) * 0.5) : 0
+    halo: core * 3.6,
+    haloOpacity: 0.16 + level * 0.09,
+    coreOpacity: 0.6 + level * 0.065,
+    labelOpacity: 0.7 + level * 0.05,
+    sparkle: level >= 4 ? core * (1.5 + (level - 4) * 0.4) : 0
   };
 }
 
@@ -202,7 +203,7 @@ function renderConstellation(container, topics) {
     if (labelAll || star.level >= 3) {
       // Below the core, or below the sparkle's lower arm when there is one.
       const labelY = Math.max(shape.core + 16, shape.sparkle * 2 + 12);
-      const label = svg('text', { class: 'label', y: labelY.toFixed(1) });
+      const label = svg('text', { class: 'label', y: labelY.toFixed(1), 'fill-opacity': shape.labelOpacity.toFixed(2) });
       label.textContent = star.topic.length > 20 ? star.topic.slice(0, 19) + '…' : star.topic;
       group.append(label);
     }
