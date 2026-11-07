@@ -118,16 +118,17 @@ html[dark] #yst-panel {
   background: var(--yst-soft);
 }
 
-/* Home page, no session: slim bar above YouTube's feed to start one */
+/* Home page, no session: slim bar inside YouTube's feed, between the filter chips
+   and the videos, to start one. Side margins line it up with the edges of the grid. */
 #yst-panel.yst-start {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 12px;
-  width: 100%;
-  flex: 0 0 100%;
+  flex: none;
+  align-self: stretch; /* the grid is a centred flex column */
   box-sizing: border-box;
-  margin: 16px 0 0;
+  margin: 24px calc(var(--ytd-rich-grid-item-margin, 16px) / 2 + var(--ytd-rich-grid-gutter-margin, 24px)) 0;
   padding: 12px 24px;
   background: var(--yst-soft);
   border-radius: 12px;

@@ -15,6 +15,13 @@ const WATCH_PAGE = `
     </ytd-watch-flexy>
   </ytd-page-manager>`;
 
+const HOME_PAGE = `
+  <ytd-page-manager>
+    <ytd-browse page-subtype="home">
+      <ytd-rich-grid-renderer><div id="header"></div><div id="contents"></div></ytd-rich-grid-renderer>
+    </ytd-browse>
+  </ytd-page-manager>`;
+
 function videos(prefix, count) {
   return Array.from({ length: count }, (_, i) => ({
     videoId: `${prefix}${i}`,
@@ -184,12 +191,15 @@ test('the panel editor changes topic and time, and can stop the session', async 
 test('home page with no session: a start bar starts one with the last values', async () => {
   const page = loadContent({
     url: 'https://www.youtube.com/',
-    html: '<ytd-page-manager></ytd-page-manager>',
+    html: HOME_PAGE,
     storage: { lastTopic: 'physics', lastMinutes: 30 }
   });
   await flush();
-  const bar = page.document.querySelector('ytd-page-manager > form.yst-start');
+  // Between the filter chips and the videos, not a sibling of the feed in ytd-page-manager.
+  const bar = page.document.querySelector('ytd-rich-grid-renderer > form.yst-start');
   assert.ok(bar);
+  assert.equal(bar.previousElementSibling.id, 'header');
+  assert.equal(bar.nextElementSibling.id, 'contents');
   assert.equal(page.document.documentElement.classList.contains('yst-active'), false);
   const [topicInput, minutesInput] = bar.querySelectorAll('input');
   assert.deepEqual([topicInput.value, minutesInput.value], ['physics', '30']);
@@ -202,8 +212,9 @@ test('home page with no session: a start bar starts one with the last values', a
 });
 
 test('the start bar can be hidden for the tab, and is not shown on watch pages', async () => {
-  const home = loadContent({ url: 'https://www.youtube.com/', html: '<ytd-page-manager></ytd-page-manager>' });
+  const home = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE });
   await flush();
+  assert.ok(home.document.querySelector('.yst-start'));
   home.document.querySelector('.yst-dismiss').click();
   assert.equal(home.document.querySelector('.yst-start'), null);
   home.document.dispatchEvent(new home.window.Event('yt-navigate-finish'));

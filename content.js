@@ -19,6 +19,8 @@ const YT = {
   related: 'ytd-watch-flexy #related', // recommendations column on the watch page
   secondary: 'ytd-watch-flexy #secondary', // the whole right-hand column (fallback)
   pageContent: 'ytd-page-manager', // main content area, right of the left menu
+  // the home page's grid of videos, below the filter chips (All, Music, Podcasts...)
+  homeGrid: 'ytd-browse[page-subtype="home"] ytd-rich-grid-renderer > #contents',
   player: '#movie_player',
   autoplayToggle: '.ytp-autonav-toggle-button', // aria-checked="true" when autoplay is on
   autoplayCancel: '.ytp-autonav-endscreen-upnext-cancel-button'
@@ -43,12 +45,20 @@ async function update() {
       sessionStorage.removeItem('yst-watched'); // next session starts fresh
     } catch {}
     if (location.pathname === '/' && !startBarDismissed()) {
-      const defaults = await chrome.storage.local.get(['lastTopic', 'lastMinutes']);
+      // The bar goes inside YouTube's home feed, right above the videos. Higher up it
+      // would be under the filter chips (fixed to the top of the window), and as a
+      // child of ytd-page-manager (a flex row) it would squeeze the feed to nothing.
+      // On a fresh page load the feed is built a little after this script runs.
+      const [defaults, grid] = await Promise.all([
+        chrome.storage.local.get(['lastTopic', 'lastMinutes']),
+        waitFor(YT.homeGrid, 5000)
+      ]);
       if (thisUpdate !== updateCount) return; // user moved on while we waited
-      const content = document.querySelector(YT.pageContent);
-      if (content) {
+      if (grid) {
         panel = createStartBar(defaults);
-        content.prepend(panel);
+        grid.before(panel);
+      } else {
+        console.warn(`[YouTube Study Time] "${YT.homeGrid}" not found, not showing the start bar.`);
       }
     }
     return;
