@@ -87,8 +87,20 @@ export function createFakeChrome(initialStorage = {}) {
     },
     notifications: {
       created: [],
-      create(options) {
-        chrome.notifications.created.push(options);
+      cleared: [],
+      // Accepts create(options) or create(id, options), like Chrome.
+      create(id, options) {
+        chrome.notifications.created.push(typeof id === 'string' ? { id, ...options } : id);
+      },
+      clear(id) {
+        chrome.notifications.cleared.push(id);
+      },
+      onClicked: event()
+    },
+    tabs: {
+      created: [],
+      async create(info) {
+        chrome.tabs.created.push(info);
       }
     },
     runtime: {
@@ -96,6 +108,7 @@ export function createFakeChrome(initialStorage = {}) {
       onStartup: event(),
       onInstalled: event(),
       optionsOpened: 0,
+      getURL: (path) => 'chrome-extension://test-id/' + path,
       openOptionsPage() {
         chrome.runtime.optionsOpened++;
       },

@@ -11,15 +11,17 @@ const source = (file) => readFileSync(new URL(file, root), 'utf8');
 // `get(name)` reads any top-level function or const, e.g. get('decodeHtml').
 export function loadBackground({ storage = {}, fetch } = {}) {
   const chrome = createFakeChrome(storage);
+  const run = (file) => vm.runInContext(source(file), context, { filename: file });
   const context = vm.createContext({
     chrome,
+    importScripts: (...files) => files.forEach(run),
     fetch: fetch || (async () => {
       throw new Error('fetch not stubbed in this test');
     }),
     URLSearchParams,
     console
   });
-  vm.runInContext(source('background.js'), context, { filename: 'background.js' });
+  run('background.js');
   return { chrome, context, get: (name) => vm.runInContext(name, context) };
 }
 
@@ -73,6 +75,36 @@ export function loadContent({ url = 'https://www.youtube.com/', html = '', stora
       vm.runInContext('removePanel()', vmContext);
       window.close();
     }
+  };
+  openPages.add(page);
+  return page;
+}
+
+// Opens one of the extension's own pages (e.g. 'stats.html') in jsdom with its real
+// markup, then runs its scripts in order. The <script> tags themselves are not run.
+// `messageHandler` answers chrome.runtime.sendMessage calls from the page.
+export function loadPage(file, scripts, { storage = {}, messageHandler } = {}) {
+  const dom = new JSDOM(source(file), {
+    url: 'chrome-extension://test-id/' + file,
+    runScripts: 'outside-only',
+    pretendToBeVisual: true
+  });
+  const { window } = dom;
+  const chrome = createFakeChrome(storage);
+  if (messageHandler) chrome.runtime.messageHandler = messageHandler;
+  window.chrome = chrome;
+  const realClose = window.close.bind(window);
+  window.closeCalls = 0;
+  window.close = () => window.closeCalls++; // the popup closes itself after opening a tab
+  const vmContext = dom.getInternalVMContext();
+  for (const script of scripts) vm.runInContext(source(script), vmContext, { filename: script });
+  const page = {
+    dom,
+    window,
+    document: window.document,
+    chrome,
+    get: (name) => vm.runInContext(name, vmContext),
+    close: realClose
   };
   openPages.add(page);
   return page;

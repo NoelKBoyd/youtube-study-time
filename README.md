@@ -12,6 +12,18 @@ While a session is running:
 
 When time is up you get a notification and YouTube goes back to normal.
 
+## Stats, goals and topic mastery
+
+Every session is recorded when it ends. Click **View stats** in the popup (or the "finished" notification) to see:
+
+- **Today, this week, current and best streak.** Times are *session time*: how long the session ran, not verified watch time.
+- **Goals:** daily and weekly minutes, plus an optional total target per topic. A day keeps your streak when it reaches the daily goal (or, with no goal, has a completed session).
+- **Topics:** total time, sessions, last studied and mastery level, sortable by any column. Topics match regardless of case and spaces.
+- **Constellation:** each topic is a star that grows as it levels up (Spark 0 h, Curious 1 h, Steady 5 h, Focused 20 h, Deep 50 h, Mastery 100 h). A completed session makes its star twinkle.
+- **History** with per-entry delete, **Clear history** and **Export JSON**.
+
+Everything stays in Chrome's local storage. Nothing is uploaded.
+
 ## Install
 
 1. Unzip the folder somewhere permanent. Chrome loads it from that location.
@@ -51,11 +63,14 @@ By default a key gets **100 searches per day**. Each page of results (up to 50 v
 | File | What it does |
 |---|---|
 | `manifest.json` | Extension setup and permissions |
-| `background.js` | Session timer (alarms, badge, notification) and all YouTube API calls, with caching |
+| `background.js` | Session timer (alarms, badge, notification), the session log, and all YouTube API calls, with caching |
+| `shared.js` | Level thresholds, default goals, `topicKey()` and date helpers, shared by the worker and the pages |
 | `content.js` | Runs on youtube.com: detects page changes, hides suggestions and builds the study feed |
 | `content.css` | Hides YouTube's suggestions and styles the feed (light and dark theme) |
-| `popup.html/.js/.css` | Toolbar popup for starting a session, showing the countdown and stopping |
+| `popup.html/.js/.css` | Toolbar popup for starting a session, showing the countdown and stopping, with today's total and a link to the stats |
 | `options.html/.js/.css` | Settings page for the API key and the cache |
+| `stats.html/.js/.css` | Stats page: totals, goals, streaks, topics, history, export |
+| `constellation.js` | The constellation drawing on the stats page (plain SVG) |
 | `test/` | Unit tests, run with `npm test` (not part of the extension) |
 | `package.json`, `web-ext-config.mjs` | Dev tooling only (not part of the extension) |
 

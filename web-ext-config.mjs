@@ -16,6 +16,7 @@ export default {
     'CLAUDE.md',
     'README.md',
     'FEATURES.md',
+    'study-stats-and-goals-spec.md',
     '.gitignore'
   ],
   run: {
