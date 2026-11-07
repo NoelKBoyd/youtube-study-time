@@ -52,6 +52,10 @@ test('the settings page shows the YouTube API Services notice and policy links',
     ['YouTube Terms of Service', 'https://www.youtube.com/t/terms', '_blank'],
     ['Google Privacy Policy', 'https://policies.google.com/privacy', '_blank'],
   ]);
+  assert.equal(
+    terms.querySelector('.limited-use').textContent,
+    'The use of user data by this extension complies with the Chrome Web Store User Data Policy, including the Limited Use requirements.',
+  );
 });
 
 async function openOptions(storage = {}, messageHandler) {

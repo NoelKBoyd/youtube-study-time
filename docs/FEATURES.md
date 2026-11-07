@@ -58,7 +58,7 @@ A full list of what the extension does today (v1.1.0), followed by the gaps that
 
 ## API key, quota and cache
 
-- **Settings page** with step-by-step setup for a free YouTube Data API v3 key, **Save** and **Test key** buttons, and specific messages for an invalid key, the API not being enabled, quota used up, or a network error. Under the key field it notes that the extension uses YouTube API Services, with links to the privacy policy, the YouTube Terms of Service and the Google Privacy Policy.
+- **Settings page** with step-by-step setup for a free YouTube Data API v3 key, **Save** and **Test key** buttons, and specific messages for an invalid key, the API not being enabled, quota used up, or a network error. Under the key field it notes that the extension uses YouTube API Services, with links to the privacy policy, the YouTube Terms of Service and the Google Privacy Policy. It also carries the privacy policy's Limited Use statement (the extension's use of user data complies with the Chrome Web Store User Data Policy).
 - **Results are saved for 24 hours**, per topic and page, so repeating a topic costs no quota. Topics are matched regardless of capitalization. Old entries are cleared each time a session starts.
 - **Clear saved results** button, which reports how many pages it removed.
 - **Test key** shows its result inline, under the key; saving the key is confirmed at the bottom of the page.
