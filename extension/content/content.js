@@ -253,24 +253,30 @@ function createStartBar({ lastTopic, lastMinutes }) {
   error.hidden = true;
   const send = sender(error);
 
-  // Header row: title on the left; goal progress, Stats button and × on the right.
+  // Header row: title and goal progress on the left; × on the right.
   const title = make('div', 'yst-title');
   title.append(makeIcon('school'), make('span', '', 'Study time'));
   const goals = make('div', 'yst-goals');
-  const statsButton = collapsibleButton('yst-tonal yst-neutral yst-stats-button', 'bar_chart', 'Stats');
-  const actions = make('div', 'yst-start-actions');
-  actions.append(goals, statsButton, dismiss);
+  const lead = make('div', 'yst-start-lead');
+  lead.append(title, goals);
   const head = make('div', 'yst-start-head');
-  head.append(title, actions);
+  head.append(lead, dismiss);
+
+  const statsButton = make('button', 'yst-button yst-tonal yst-neutral yst-stats-button');
+  statsButton.type = 'button';
+  statsButton.append(makeIcon('bar_chart'), 'Stats');
 
   // Form grid (laid out in content.css): Topic | Minutes | Start on the first row,
-  // recent topics | minute chips below. Narrow windows stack it into more rows.
+  // then a left-aligned row of chips (recent topics | minute picks) under Topic and
+  // the Stats button under Minutes + Start.
   const recent = make('div', 'yst-recent');
   recent.setAttribute('role', 'group');
   recent.setAttribute('aria-label', 'Recent topics');
   recent.hidden = true;
+  const chips = make('div', 'yst-start-chips');
+  chips.append(recent, minutePicks(minutesInput));
   const grid = make('div', 'yst-start-grid');
-  grid.append(topicField, minutesField, start, recent, minutePicks(minutesInput));
+  grid.append(topicField, minutesField, start, chips, statsButton);
 
   form.append(head, grid, error);
   keepKeysFromYouTube(form);
@@ -292,7 +298,6 @@ function createStartBar({ lastTopic, lastMinutes }) {
     const { goals: saved, sessionLog = [] } = await chrome.storage.local.get(['goals', 'sessionLog']);
     renderGoals(goals, { ...DEFAULT_GOALS, ...saved }, sessionLog, send);
     renderRecentTopics(recent, sessionLog, topicInput);
-    grid.classList.toggle('yst-has-recent', !recent.hidden); // narrow layout gives it a row
   };
   form.refresh();
 

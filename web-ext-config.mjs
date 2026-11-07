@@ -1,28 +1,18 @@
 // Settings for `npm run dev` and `npm run zip` (Mozilla's web-ext tool, which also drives Chrome).
 import { fileURLToPath } from 'node:url';
 
-// Chrome needs an absolute path here; a relative one makes it exit at startup.
-const devProfile = fileURLToPath(new URL('./node_modules/.chrome-dev-profile', import.meta.url));
+// Chrome needs absolute paths here; a relative one makes it exit at startup.
+const path = (relative) => fileURLToPath(new URL(relative, import.meta.url));
 
 export default {
-  // Dev tooling that must not end up in the packaged extension.
-  ignoreFiles: [
-    'node_modules',
-    'test',
-    'package.json',
-    'package-lock.json',
-    'web-ext-config.mjs',
-    'web-ext-artifacts',
-    'CLAUDE.md',
-    'README.md',
-    'FEATURES.md',
-    'study-stats-and-goals-spec.md',
-    '.gitignore'
-  ],
+  // Only extension/ is loaded and packaged, so dev files (tests, docs, package.json)
+  // at the top level never end up in the zip.
+  sourceDir: path('./extension'),
+  artifactsDir: path('./web-ext-artifacts'),
   run: {
     startUrl: ['https://www.youtube.com/'],
     // Keep a separate dev profile so the API key and YouTube login survive restarts.
-    chromiumProfile: devProfile,
+    chromiumProfile: path('./node_modules/.chrome-dev-profile'),
     profileCreateIfMissing: true,
     keepProfileChanges: true,
     // web-ext always adds --disable-blink-features=AutomationControlled (so YouTube/Google

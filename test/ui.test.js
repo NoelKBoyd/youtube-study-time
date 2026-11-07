@@ -6,17 +6,19 @@ import { loadPage, flush, closeAllPages } from './load.js';
 
 afterEach(closeAllPages);
 
-const root = new URL('../', import.meta.url);
+const root = new URL('../extension/', import.meta.url);
 const source = (file) => readFileSync(new URL(file, root), 'utf8');
 
 // ---------- Icons ----------
 
 test('every icon the pages and scripts ask for exists in ui.js', () => {
-  const page = loadPage('options.html', ['ui.js']);
+  const page = loadPage('options/options.html', ['shared/ui.js']);
   const icons = page.get('ICON_PATHS');
   const used = new Set();
   // ui.js itself is skipped: its comments mention data-icon="name".
-  const files = readdirSync(root).filter((name) => /\.(html|js)$/.test(name) && name !== 'ui.js');
+  const files = readdirSync(root, { recursive: true })
+    .map((name) => name.replaceAll('\\', '/'))
+    .filter((name) => /\.(html|js)$/.test(name) && name !== 'shared/ui.js');
   for (const file of files) {
     const text = source(file);
     for (const [, name] of text.matchAll(/data-icon="([a-z_]+)"/g)) used.add(name);
@@ -30,7 +32,7 @@ test('every icon the pages and scripts ask for exists in ui.js', () => {
 });
 
 test('fillIcons swaps data-icon placeholders for SVG icons, keeping their classes', () => {
-  const page = loadPage('options.html', ['ui.js', 'options.js']);
+  const page = loadPage('options/options.html', ['shared/ui.js', 'options/options.js']);
   assert.equal(page.document.querySelectorAll('[data-icon]').length, 0);
   const key = page.document.querySelector('.yst-field > svg.yst-icon');
   assert.ok(key);
@@ -41,7 +43,7 @@ test('fillIcons swaps data-icon placeholders for SVG icons, keeping their classe
 // ---------- Settings ----------
 
 async function openOptions(storage = {}, messageHandler) {
-  const page = loadPage('options.html', ['ui.js', 'options.js'], { storage, messageHandler });
+  const page = loadPage('options/options.html', ['shared/ui.js', 'options/options.js'], { storage, messageHandler });
   await flush();
   return page;
 }
@@ -118,7 +120,7 @@ test('settings: Clear saved results removes only cached pages', async () => {
 
 test('popup: today row shows the daily goal and its progress when one is set', async () => {
   const now = Date.now();
-  const page = loadPage('popup.html', ['shared.js', 'ui.js', 'popup.js'], {
+  const page = loadPage('popup/popup.html', ['shared/shared.js', 'shared/ui.js', 'popup/popup.js'], {
     storage: {
       goals: { dailyMin: 60, weeklyMin: 0, perTopic: {} },
       sessionLog: [{ id: 'a', topic: 'x', topicKey: 'x', endedAt: now - 1000, actualMin: 15 }]
@@ -135,7 +137,7 @@ test('popup: today row shows the daily goal and its progress when one is set', a
 });
 
 test('popup: with nothing today and no goal, the today row is hidden', async () => {
-  const page = loadPage('popup.html', ['shared.js', 'ui.js', 'popup.js'], { storage: {} });
+  const page = loadPage('popup/popup.html', ['shared/shared.js', 'shared/ui.js', 'popup/popup.js'], { storage: {} });
   await flush();
   assert.equal(page.document.getElementById('today').hidden, true);
   assert.equal(page.document.getElementById('today-total').textContent, '');

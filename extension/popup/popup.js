@@ -81,7 +81,7 @@ document.getElementById('stop').addEventListener('click', async () => {
 
 document.getElementById('open-stats').addEventListener('click', (event) => {
   event.preventDefault();
-  chrome.tabs.create({ url: chrome.runtime.getURL('stats.html') });
+  chrome.tabs.create({ url: chrome.runtime.getURL('stats/stats.html') });
   window.close();
 });
 

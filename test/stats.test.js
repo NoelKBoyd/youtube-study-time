@@ -4,7 +4,7 @@ import { loadPage, flush, closeAllPages } from './load.js';
 
 afterEach(closeAllPages);
 
-const STATS_SCRIPTS = ['shared.js', 'ui.js', 'constellation.js', 'stats.js'];
+const STATS_SCRIPTS = ['shared/shared.js', 'shared/ui.js', 'stats/constellation.js', 'stats/stats.js'];
 
 // Midday `daysAgo` local days back (or now, if today's midday hasn't come yet).
 function dayAt(daysAgo) {
@@ -29,7 +29,7 @@ function record(daysAgo, actualMin, { outcome = 'completed', topic = 'Rust', pla
 }
 
 async function openStats(storage, messageHandler) {
-  const page = loadPage('stats.html', STATS_SCRIPTS, { storage, messageHandler });
+  const page = loadPage('stats/stats.html', STATS_SCRIPTS, { storage, messageHandler });
   await flush();
   return page;
 }
@@ -328,12 +328,12 @@ test('a session completed while the page is open twinkles its star', async () =>
 // ---------- Popup ----------
 
 test('popup shows today\'s session time and opens the stats page', async () => {
-  const page = loadPage('popup.html', ['shared.js', 'ui.js', 'popup.js'], {
+  const page = loadPage('popup/popup.html', ['shared/shared.js', 'shared/ui.js', 'popup/popup.js'], {
     storage: { sessionLog: [record(0, 40), record(0, 20, { outcome: 'stopped' }), record(1, 99)] }
   });
   await flush();
   assert.equal(page.document.getElementById('today-total').textContent, 'Today: 1 h');
   page.document.getElementById('open-stats').click();
-  assert.deepEqual(structuredClone(page.chrome.tabs.created), [{ url: 'chrome-extension://test-id/stats.html' }]);
+  assert.deepEqual(structuredClone(page.chrome.tabs.created), [{ url: 'chrome-extension://test-id/stats/stats.html' }]);
   assert.equal(page.window.closeCalls, 1);
 });

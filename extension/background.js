@@ -12,7 +12,7 @@
 //   apiKey     -> the user's YouTube Data API key
 //   cache:*    -> saved search results (one entry per topic + page)
 
-importScripts('shared.js'); // topicKey(), DEFAULT_GOALS, ...
+importScripts('shared/shared.js'); // topicKey(), DEFAULT_GOALS, ...
 
 const ALARM_NAME = 'study-end';
 const NOTIFICATION_ID = 'study-finished';
@@ -125,7 +125,7 @@ function endSession({ notify = false, completed = false } = {}) {
     if (notify && session) {
       chrome.notifications.create(NOTIFICATION_ID, {
         type: 'basic',
-        iconUrl: 'icons/icon128.png',
+        iconUrl: 'assets/icons/icon128.png',
         title: 'Study session finished',
         message: 'Time is up. YouTube is back to normal. Click to see your stats.'
       });
@@ -209,7 +209,7 @@ chrome.notifications.onClicked.addListener((id) => {
 
 // `anchor` is an element id on the stats page to scroll to (e.g. the goals form).
 function openStats(anchor = '') {
-  chrome.tabs.create({ url: chrome.runtime.getURL('stats.html') + (anchor ? '#' + anchor : '') });
+  chrome.tabs.create({ url: chrome.runtime.getURL('stats/stats.html') + (anchor ? '#' + anchor : '') });
 }
 
 async function showBadge(on) {

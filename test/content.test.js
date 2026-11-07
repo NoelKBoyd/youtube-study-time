@@ -256,7 +256,6 @@ test('start bar offers up to 3 recent topics that fill the Topic field', async (
   const bar = page.document.querySelector('.yst-start');
   const chips = [...bar.querySelectorAll('.yst-recent .yst-chip')];
   assert.deepEqual(chips.map((chip) => chip.textContent), ['Physics', 'Chemistry', 'Biology']);
-  assert.ok(bar.querySelector('.yst-start-grid').classList.contains('yst-has-recent'));
   chips[1].click();
   assert.equal(bar.querySelector('input').value, 'Chemistry');
   page.close();
@@ -355,7 +354,7 @@ test('timeAgo', async () => {
 
 // CLAUDE.md: background.js error codes and content.js ERROR_MESSAGES must stay in step.
 test('every error code from background.js has a message in content.js', async () => {
-  const background = readFileSync(new URL('../background.js', import.meta.url), 'utf8');
+  const background = readFileSync(new URL('../extension/background.js', import.meta.url), 'utf8');
   const codes = new Set([...background.matchAll(/(?:error:\s*|return\s+)'([a-z]+)'/g)].map((m) => m[1]));
   const page = loadContent();
   await flush(); // let the script's startup storage read finish
