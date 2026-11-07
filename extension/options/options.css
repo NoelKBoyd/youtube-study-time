@@ -54,6 +54,26 @@
   font: 500 12px/16px var(--yst-font);
 }
 
+/* YouTube API Services notice and policy links, under the key field */
+.api-terms {
+  display: grid;
+  gap: 4px;
+  margin-top: -8px;
+}
+
+.api-terms p {
+  margin: 0;
+}
+
+.api-terms-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 /* Show/hide key: one icon at a time */
 #toggle-key .hide-icon,
 #toggle-key[aria-pressed='true'] .show-icon {
