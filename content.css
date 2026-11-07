@@ -141,8 +141,148 @@ html[dark] #yst-panel {
   border-radius: 12px;
 }
 
-.yst-start .yst-label {
+/* Top row of the start bar: label | goal progress, Stats button, × */
+.yst-start-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   flex-basis: 100%;
+}
+
+.yst-start-head .yst-label {
+  margin-right: auto;
+}
+
+.yst-goals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.yst-goal,
+.yst-goal-placeholder,
+.yst-stats-button {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 32px;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--yst-text);
+  cursor: pointer;
+}
+
+/* One goal: "TODAY  25 m / 1 h" with a thin progress line underneath */
+.yst-goal {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 4px;
+  min-width: 150px;
+  padding: 5px 14px 6px;
+  border: none;
+  background: var(--yst-bg);
+}
+
+.yst-goal-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.yst-goal-label {
+  font-size: 11px;
+  color: var(--yst-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.yst-goal-value {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.yst-goal-track {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--yst-soft);
+  overflow: hidden;
+}
+
+.yst-goal-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--yst-accent);
+  transition: width 0.4s ease;
+}
+
+.yst-goal-done .yst-goal-value {
+  color: var(--yst-accent);
+}
+
+.yst-goal-unset .yst-goal-value,
+.yst-goal-placeholder {
+  color: var(--yst-muted);
+}
+
+/* No goals at all: a dashed "add" pill */
+.yst-goal-placeholder {
+  padding: 0 14px;
+  border: 1px dashed var(--yst-muted);
+  background: transparent;
+}
+
+.yst-goal-placeholder::before {
+  content: '+';
+  margin-right: 6px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.yst-stats-button {
+  gap: 6px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--yst-accent);
+  background: transparent;
+  color: var(--yst-accent);
+  font-weight: 500;
+}
+
+.yst-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.yst-goal:hover,
+.yst-goal-placeholder:hover {
+  outline: 1px solid var(--yst-muted);
+}
+
+.yst-goal-placeholder:hover {
+  color: var(--yst-text);
+}
+
+.yst-stats-button:hover {
+  background: var(--yst-accent);
+  color: #ffffff;
+}
+
+html[dark] .yst-stats-button:hover {
+  color: #0f0f0f;
+}
+
+.yst-goal:focus-visible,
+.yst-goal-placeholder:focus-visible,
+.yst-stats-button:focus-visible,
+.yst-dismiss:focus-visible {
+  outline: 2px solid var(--yst-accent);
+  outline-offset: 2px;
 }
 
 .yst-start .yst-field {
@@ -159,8 +299,7 @@ html[dark] #yst-panel {
 }
 
 .yst-dismiss {
-  margin-left: auto;
-  align-self: flex-start;
+  padding: 0 2px;
   border: none;
   background: transparent;
   color: var(--yst-muted);

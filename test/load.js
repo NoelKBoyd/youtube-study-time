@@ -62,7 +62,8 @@ export function loadContent({ url = 'https://www.youtube.com/', html = '', stora
   // Run it as a classic script in the page's context, so its top-level consts
   // (ERROR_MESSAGES, MAX_PAGES, ...) stay readable by later get() calls.
   const vmContext = dom.getInternalVMContext();
-  vm.runInContext(source('content.js'), vmContext, { filename: 'content.js' });
+  // Same order as the manifest's content_scripts entry.
+  for (const file of ['shared.js', 'content.js']) vm.runInContext(source(file), vmContext, { filename: file });
   const page = {
     dom,
     window,

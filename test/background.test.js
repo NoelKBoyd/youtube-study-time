@@ -355,9 +355,11 @@ test('clicking the finished notification, or openStats, opens the stats page', a
   const { chrome } = loadBackground();
   chrome.notifications.onClicked.fire('study-finished');
   await sendToBackground(chrome, { type: 'openStats' });
+  await sendToBackground(chrome, { type: 'openStats', section: 'goals' });
   assert.deepEqual(chrome.tabs.created.map((t) => t.url), [
     'chrome-extension://test-id/stats.html',
-    'chrome-extension://test-id/stats.html'
+    'chrome-extension://test-id/stats.html',
+    'chrome-extension://test-id/stats.html#goals-heading'
   ]);
   assert.deepEqual(chrome.notifications.cleared, ['study-finished']);
 });

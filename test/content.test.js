@@ -211,6 +211,42 @@ test('home page with no session: a start bar starts one with the last values', a
   page.close();
 });
 
+test('start bar with no goals: a "set your goals" button, and a Stats button', async () => {
+  const page = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE });
+  await flush();
+  const bar = page.document.querySelector('.yst-start');
+  assert.equal(bar.querySelectorAll('.yst-goal').length, 0);
+  bar.querySelector('.yst-goal-placeholder').click();
+  await flush();
+  assert.deepEqual(page.chrome.runtime.sentMessages.at(-1), { type: 'openStats', section: 'goals' });
+  bar.querySelector('.yst-stats-button').click();
+  await flush();
+  assert.deepEqual(page.chrome.runtime.sentMessages.at(-1), { type: 'openStats' });
+  page.close();
+});
+
+test('start bar shows today and this week against the goals, and follows changes', async () => {
+  const now = Date.now();
+  const page = loadContent({
+    url: 'https://www.youtube.com/',
+    html: HOME_PAGE,
+    storage: {
+      goals: { dailyMin: 60, weeklyMin: 0, perTopic: {} },
+      sessionLog: [{ id: 'a', topic: 'x', topicKey: 'x', endedAt: now - 1000, actualMin: 30 }]
+    }
+  });
+  await flush();
+  const goalTexts = () => [...page.document.querySelectorAll('.yst-goal')].map((g) => g.textContent);
+  assert.deepEqual(goalTexts(), ['Today30 m / 1 h', 'This weekSet a goal']);
+  assert.equal(page.document.querySelector('.yst-goal-fill').style.width, '50%');
+
+  await page.chrome.storage.local.set({ goals: { dailyMin: 30, weeklyMin: 120, perTopic: {} } });
+  await flush();
+  assert.deepEqual(goalTexts(), ['Today✓ 30 m / 30 m', 'This week30 m / 2 h']);
+  assert.ok(page.document.querySelector('.yst-goal').classList.contains('yst-goal-done'));
+  page.close();
+});
+
 test('the start bar can be hidden for the tab, and is not shown on watch pages', async () => {
   const home = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE });
   await flush();

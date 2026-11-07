@@ -9,7 +9,9 @@
 //   - sends Shorts pages to the normal watch page (no endless Shorts feed)
 //   - makes autoplay play the next study video instead of YouTube's pick
 //   - lets the user edit or stop the session from the panel itself
-// With no session, the home page gets a slim "start studying" bar instead.
+// With no session, the home page gets a slim "start studying" bar instead, which
+// also shows progress towards the daily/weekly goals and links to the stats page.
+// shared.js is loaded before this file (see manifest.json) for the date/format helpers.
 
 const MAX_PAGES = 10; // safety limit: at most 10 API calls per page view
 
@@ -118,9 +120,12 @@ document.addEventListener('yt-navigate-finish', update);
 
 // The popup (start/stop) and the background timer change the session in storage.
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.session) {
+  if (area !== 'local') return;
+  if (changes.session) {
     session = changes.session.newValue || null;
     update();
+  } else if ((changes.goals || changes.sessionLog) && panel && panel.refreshGoals) {
+    panel.refreshGoals(); // goals edited on the stats page, or a session was logged
   }
 });
 
@@ -236,14 +241,25 @@ function createStartBar({ lastTopic, lastMinutes }) {
 
   const error = make('p', 'yst-error');
   error.hidden = true;
+  const send = sender(error);
 
-  form.append(make('div', 'yst-label', 'Study time'), topicLabel, minutesLabel, start, dismiss, error);
+  // Header row: label on the left; goal progress, Stats button and × on the right.
+  const goals = make('div', 'yst-goals');
+  const statsButton = make('button', 'yst-stats-button');
+  statsButton.type = 'button';
+  statsButton.title = 'Open your study stats';
+  statsButton.append(chartIcon(), document.createTextNode('Stats'));
+  const head = make('div', 'yst-start-head');
+  head.append(make('div', 'yst-label', 'Study time'), goals, statsButton, dismiss);
+
+  form.append(head, topicLabel, minutesLabel, start, error);
   keepKeysFromYouTube(form);
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    submitSession(topicInput, minutesInput, sender(error));
+    submitSession(topicInput, minutesInput, send);
   });
+  statsButton.addEventListener('click', () => send({ type: 'openStats' }));
   dismiss.addEventListener('click', () => {
     try {
       sessionStorage.setItem('yst-start-hidden', '1');
@@ -251,8 +267,75 @@ function createStartBar({ lastTopic, lastMinutes }) {
     removePanel();
   });
 
+  // Called again by the storage listener when goals or the session log change.
+  form.refreshGoals = async () => {
+    const { goals: saved, sessionLog = [] } = await chrome.storage.local.get(['goals', 'sessionLog']);
+    renderGoals(goals, { ...DEFAULT_GOALS, ...saved }, sessionLog, send);
+  };
+  form.refreshGoals();
+
   form.cleanup = () => {};
   return form;
+}
+
+// Today's and this week's time against the goals set on the stats page.
+// With neither goal set, a single "Set your goals" button takes its place.
+function renderGoals(container, { dailyMin, weeklyMin }, log, send) {
+  const now = Date.now();
+  const openGoals = () => send({ type: 'openStats', section: 'goals' });
+  container.replaceChildren();
+
+  if (!(dailyMin > 0) && !(weeklyMin > 0)) {
+    const setGoals = make('button', 'yst-goal-placeholder', 'Set your daily & weekly goals');
+    setGoals.type = 'button';
+    setGoals.addEventListener('click', openGoals);
+    container.append(setGoals);
+    return;
+  }
+
+  for (const [label, from, target] of [
+    ['Today', startOfDay(now), dailyMin],
+    ['This week', startOfWeek(now), weeklyMin]
+  ]) {
+    const done = minutesBetween(log, from, Infinity);
+    const item = make('button', 'yst-goal');
+    item.type = 'button';
+    item.addEventListener('click', openGoals);
+    const text = make('span', 'yst-goal-text');
+    text.append(make('span', 'yst-goal-label', label));
+    if (target > 0) {
+      const reached = done >= target;
+      item.classList.toggle('yst-goal-done', reached);
+      item.title = `${label}: ${formatMinutes(done)} of ${formatMinutes(target)}`;
+      text.append(make('span', 'yst-goal-value', `${reached ? '✓ ' : ''}${formatMinutes(done)} / ${formatMinutes(target)}`));
+      const track = make('span', 'yst-goal-track');
+      const fill = make('span', 'yst-goal-fill');
+      fill.style.width = `${Math.min(100, (done / target) * 100)}%`;
+      track.append(fill);
+      item.append(text, track);
+    } else {
+      item.classList.add('yst-goal-unset');
+      item.title = `Set a ${label === 'Today' ? 'daily' : 'weekly'} goal`;
+      text.append(make('span', 'yst-goal-value', 'Set a goal'));
+      item.append(text);
+    }
+    container.append(item);
+  }
+}
+
+// Small bar-chart icon for the Stats button (SVG built node by node, no innerHTML).
+function chartIcon() {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('yst-icon');
+  for (const [x, y, h] of [[4, 13, 7], [10, 8, 12], [16, 4, 16]]) {
+    const bar = document.createElementNS(ns, 'rect');
+    for (const [name, value] of Object.entries({ x, y, width: 4, height: h, rx: 1 })) bar.setAttribute(name, value);
+    svg.append(bar);
+  }
+  return svg;
 }
 
 function startBarDismissed() {
