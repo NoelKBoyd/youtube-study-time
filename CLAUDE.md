@@ -1,0 +1,52 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+A Manifest V3 Chrome extension in plain JavaScript/CSS/HTML. There is no build step and no runtime dependencies: the files in this folder are loaded into Chrome as they are. `package.json` exists only for dev tooling (`web-ext`, `jsdom`); run `npm install` once.
+
+## Running and testing
+
+- `npm test` runs the unit tests (Node's built-in `node:test`, about 1s). `npm run test:watch` reruns on save. Run a single file with `node --test test/background.test.js`, or a single test with `node --test --test-name-pattern="formatTime" "test/*.test.js"`.
+- `npm run dev` opens Chrome with the extension already loaded on youtube.com and reloads it automatically when a file changes. It uses a persistent dev profile in `node_modules/.chrome-dev-profile`, so the API key and YouTube login survive restarts. Open YouTube tabs still need a page refresh after a reload to get the new content script.
+- `npm run zip` writes a clean package to `web-ext-artifacts/` (dev files excluded via `ignoreFiles` in `web-ext-config.mjs`; add any new dev-only file there).
+- Manual load still works: `chrome://extensions` → Developer mode → **Load unpacked** → this folder. Tabs already open on youtube.com keep the old content script after a reload (its `chrome.runtime.sendMessage` calls fail, which `content.js` shows as the `reloaded` error).
+- Debug the service worker via the "service worker" link on the extension card; debug `content.js` in the YouTube tab's DevTools.
+- The feed needs a YouTube Data API v3 key, entered in the options page. Without one the panel still renders and falls back to a plain YouTube search link.
+
+### How the tests work
+
+The tests load the real source files unchanged, so the extension code never needs `export`s or test hooks:
+- `test/fake-chrome.js` is an in-memory `chrome.*` (storage with `onChanged`, alarms, badge, notifications, runtime messaging). `sendToBackground()` delivers a message to `background.js`'s `onMessage` listener and resolves with its `sendResponse` value.
+- `test/load.js`: `loadBackground({ storage, fetch })` runs `background.js` in a `node:vm` context with a stubbed `fetch`. `loadContent({ url, html, storage, search })` runs `content.js` in a jsdom page at that URL, with a fake `IntersectionObserver` that always reports the sentinel as visible, and `search` answering the `search` message. Both return `get(name)` to read any top-level function or `const` from the script.
+- Objects coming out of a sandbox have a different `Object` prototype, so `assert.deepEqual` fails on them; copy them first (`structuredClone`, or `[...arr]`). `sendToBackground` already does this.
+- jsdom can't navigate, so code paths that call `location.replace/assign` (Shorts redirect, autoplay) aren't unit-tested; check those in `npm run dev`. CSS and real YouTube layout are also only checked there.
+- One test checks that every error code returned in `background.js` has an `ERROR_MESSAGES` entry in `content.js`.
+
+## Architecture
+
+All shared state lives in `chrome.storage.local`, and components coordinate through it instead of messaging each other directly:
+
+- `session` → `{ topic, endTime }` while a session runs (missing otherwise)
+- `apiKey` → the user's API key
+- `cache:<lowercased topic>|<pageToken>` → `{ savedAt, data }`, cached search results (24h)
+- `lastTopic`, `lastMinutes` → popup form defaults
+
+**background.js** (service worker) is the only place that writes `session` and the only place that calls the YouTube API (`host_permissions` covers googleapis.com only). It handles runtime messages `start`, `stop`, `search`, `testKey`, `openOptions`. The session end is driven by a `chrome.alarms` alarm. On `onStartup`, the alarm and badge are rebuilt from storage because they can be lost on browser restart. API errors are reduced to short codes (`nokey`, `badkey`, `disabled`, `quota`, `network`, `api`), which `content.js` maps to messages in `ERROR_MESSAGES`. Keep these two lists in step.
+
+**content.js** reacts to `chrome.storage.onChanged` for `session` and to YouTube's SPA event `yt-navigate-finish`; both call `update()`. `update()` removes any existing panel, toggles the `yst-active` class on `<html>`, then builds a panel: a sidebar before `ytd-watch-flexy #related` on `/watch`, or a grid prepended into `ytd-page-manager` on `/` (the home feed is `display:none`; a fixed full-window overlay is the fallback). `updateCount` guards against stale async runs after navigation. Each panel carries a `cleanup()` that stops its countdown interval and its `IntersectionObserver` infinite-scroll feed (capped at `MAX_PAGES` = 10 API calls per page view). The countdown also calls `update()` when time runs out, so the page reverts even before the alarm fires. DOM is built with the `make()` helper using `textContent` only, never `innerHTML`.
+
+**content.css** hides YouTube's own suggestions with selectors scoped under `html.yst-active`, and themes the panel with CSS variables that switch on YouTube's `html[dark]` attribute.
+
+**popup.js / options.js** only read and write storage and send messages to the background worker.
+
+Beyond the panel, `content.js` also: redirects `/shorts/<id>` to `/watch?v=<id>` during a session; and replaces autoplay. A capturing `ended` listener on `document` (skipping ads via `.ad-showing` and user playlists, but not `list=RD…` Mixes) clicks YouTube's "Up next" cancel button and navigates to the first study card not yet in the per-tab `sessionStorage` `yst-watched` list. A `yt-navigate-finish` safety net treats any navigation within 15s of `ended` with no user pointer/key input as autoplay and redirects it.
+
+## When YouTube's layout changes
+
+Every YouTube DOM name the script depends on is in the `YT` object at the top of `content.js`; the CSS ones are at the top of `content.css` (which also has a second layer hiding recommendation card elements inside `#secondary`). If `#related` isn't found within 5s, the panel falls back to prepending into `#secondary`, then to a fixed `yst-floating` panel, and logs a `[YouTube Study Time]` console warning.
+
+## Known limits (by design)
+
+The feed is a topic search, not "related videos" (the API dropped related-video search in 2023). The default API quota is about 100 searches per day, at 1 search per 50-result page, which is why the cache and `MAX_PAGES` exist.

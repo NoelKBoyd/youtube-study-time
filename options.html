@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>YouTube Study Time - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <h1>YouTube Study Time - Settings</h1>
+
+  <section>
+    <h2>YouTube API key</h2>
+    <p>
+      The study feed uses the YouTube Data API. You need your own free API key,
+      so the daily limit is yours alone.
+    </p>
+    <ol>
+      <li>Open the <a href="https://console.cloud.google.com/projectcreate" target="_blank">Google Cloud Console</a> and create a project (free, no billing needed).</li>
+      <li>Enable <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">YouTube Data API v3</a> for that project.</li>
+      <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a>, click <b>Create credentials &rarr; API key</b>, and copy it.</li>
+      <li>Optional but recommended: edit the key and restrict it to <b>YouTube Data API v3</b>.</li>
+      <li>Paste it below and click Save.</li>
+    </ol>
+
+    <label for="api-key">API key</label>
+    <input id="api-key" type="password" autocomplete="off" spellcheck="false">
+    <div class="buttons">
+      <button id="save">Save</button>
+      <button id="test" class="secondary">Test key</button>
+    </div>
+    <p id="status" class="status"></p>
+  </section>
+
+  <section>
+    <h2>Daily limit</h2>
+    <p>
+      By default a key gets 100 searches per day. Each new page of results
+      (up to 50 videos) is one search. Results are saved for 24 hours, so
+      repeating a topic is free. The limit resets at midnight Pacific time.
+      Testing the key uses one search.
+    </p>
+    <button id="clear-cache" class="secondary">Clear saved results</button>
+    <p id="cache-status" class="status"></p>
+  </section>
+
+  <script src="options.js"></script>
+</body>
+</html>

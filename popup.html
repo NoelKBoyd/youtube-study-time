@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>YouTube Study Time</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>YouTube Study Time</h1>
+
+  <!-- Shown when no session is running -->
+  <form id="start-view">
+    <label>
+      What are you studying?
+      <input id="topic" type="text" required maxlength="100" placeholder="e.g. Embedded C STM32">
+    </label>
+    <label>
+      For how long? (minutes)
+      <input id="minutes" type="number" required min="1" max="600" value="45">
+    </label>
+    <button type="submit">Start studying</button>
+    <p id="key-warning" class="warning" hidden>
+      No API key set yet. <a href="#" class="open-options">Add one in settings</a>.
+    </p>
+  </form>
+
+  <!-- Shown while a session is running -->
+  <div id="session-view" hidden>
+    <p class="label">Studying</p>
+    <p id="current-topic" class="topic"></p>
+    <p id="countdown" class="countdown"></p>
+    <button id="stop" class="secondary">Stop early</button>
+  </div>
+
+  <footer><a href="#" class="open-options">Settings</a></footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

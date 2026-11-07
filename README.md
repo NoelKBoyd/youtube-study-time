@@ -1,0 +1,66 @@
+# YouTube Study Time
+
+A Chrome extension: choose a topic and a length of time. Until the timer ends, YouTube only suggests videos about that topic.
+
+While a session is running:
+
+- **Watch page:** the recommendations sidebar is replaced with a feed of videos about your topic. It loads more as you scroll.
+- **Home page:** the normal feed is covered by a grid of videos about your topic.
+- **End of a video:** the suggestion cards shown in the player are hidden. If autoplay is on, the next video from your study feed plays instead of YouTube's pick.
+- **Shorts:** open as a normal video page with the study feed, so there is no endless Shorts feed.
+- **Search** still works as normal, so you can look things up yourself.
+
+When time is up you get a notification and YouTube goes back to normal.
+
+## Install
+
+1. Unzip the folder somewhere permanent. Chrome loads it from that location.
+2. Open `chrome://extensions` and turn on **Developer mode** (top right).
+3. Click **Load unpacked** and select the `youtube-study-time` folder.
+4. Pin the extension from the puzzle-piece menu so the icon is easy to reach.
+
+## Development
+
+Needs [Node.js](https://nodejs.org/). Run `npm install` once, then:
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Opens Chrome with the extension loaded on youtube.com, and reloads it whenever you save a file. Uses its own Chrome profile, so your API key and login are kept between runs. |
+| `npm test` | Runs the unit tests in a second or so, no browser needed. `npm run test:watch` reruns them on every save. |
+| `npm run zip` | Builds a clean `.zip` of the extension (without the dev files) into `web-ext-artifacts/`. |
+
+After an automatic reload, refresh any open YouTube tab so it picks up the new content script.
+
+## Add your YouTube API key (one time)
+
+The study feed comes from the YouTube Data API v3, so you need a free API key.
+
+1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/projectcreate).
+2. Enable [YouTube Data API v3](https://console.cloud.google.com/apis/library/youtube.googleapis.com).
+3. Under [Credentials](https://console.cloud.google.com/apis/credentials), choose **Create credentials → API key**.
+4. Click the extension icon, then **Settings**. Paste the key, click **Test key**, then **Save**.
+
+Without a key, the panel still appears and shows a link to a normal YouTube search for your topic.
+
+## Daily limit
+
+By default a key gets **100 searches per day**. Each page of results (up to 50 videos) counts as one search. Results are cached for 24 hours, so going back to a topic you already used costs nothing. The limit resets at midnight Pacific time. Each page view is also capped at 10 pages (500 videos).
+
+## Files
+
+| File | What it does |
+|---|---|
+| `manifest.json` | Extension setup and permissions |
+| `background.js` | Session timer (alarms, badge, notification) and all YouTube API calls, with caching |
+| `content.js` | Runs on youtube.com: detects page changes, hides suggestions and builds the study feed |
+| `content.css` | Hides YouTube's suggestions and styles the feed (light and dark theme) |
+| `popup.html/.js/.css` | Toolbar popup for starting a session, showing the countdown and stopping |
+| `options.html/.js/.css` | Settings page for the API key and the cache |
+| `test/` | Unit tests, run with `npm test` (not part of the extension) |
+| `package.json`, `web-ext-config.mjs` | Dev tooling only (not part of the extension) |
+
+## Known limits
+
+- The feed is a **topic search**, not "related to this video". YouTube removed related-video search from the API in 2023.
+- **Your own playlists** keep playing in order (Mixes, which YouTube picks for you, are treated as recommendations).
+- YouTube changes its page structure from time to time. If its own sidebar can't be found, the feed still appears (in the right-hand column, or as a floating panel) and a warning is logged in the page console. All YouTube element names the extension relies on are in the `YT` list at the top of `content.js` and at the top of `content.css`.

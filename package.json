@@ -1,0 +1,17 @@
+{
+  "name": "youtube-study-time",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dev tooling only. The extension itself has no build step and no runtime dependencies.",
+  "type": "module",
+  "scripts": {
+    "dev": "web-ext run --target chromium",
+    "test": "node --test \"test/*.test.js\"",
+    "test:watch": "node --test --watch \"test/*.test.js\"",
+    "zip": "web-ext build --overwrite-dest"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "web-ext": "^10.8.0"
+  }
+}
