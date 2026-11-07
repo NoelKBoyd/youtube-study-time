@@ -230,9 +230,9 @@ html[dark] #yst-panel {
    Inside YouTube's feed, between the filter chips and the videos. Side margins line
    it up with the edges of the grid. One card, weighted to the left so the right
    edge only holds the actions:
-       Study time  [Today] [This week]                         [Stats] [×]
+       Study time  [Today] [This week]                                     [×]
        Topic                                    | Minutes | Start studying
-       recent topics  |  15 min  25 min  45 min  60 min
+       recent topics  |  15 min  25 min  45 min  60 min | [      Stats       ]
    The card's side padding is symmetric and nothing inside adds its own, so the ×
    and the Start button share one right edge. Only Start is a solid primary fill. */
 
@@ -280,7 +280,6 @@ html[dark] #yst-panel {
   height: 22px;
 }
 
-#yst-panel .yst-start-actions,
 #yst-panel .yst-goals {
   display: flex;
   flex-wrap: wrap;
@@ -288,7 +287,7 @@ html[dark] #yst-panel {
   gap: 8px;
 }
 
-#yst-panel .yst-start-actions {
+#yst-panel .yst-start-head .yst-dismiss {
   flex: none;
 }
 
@@ -309,7 +308,7 @@ html[dark] #yst-panel {
   grid-template-columns: minmax(0, 1fr) 112px auto;
   grid-template-areas:
     'topic minutes start'
-    'chips chips   chips';
+    'chips stats   stats';
   gap: 12px;
   align-items: center;
 }
@@ -318,6 +317,7 @@ html[dark] #yst-panel {
 #yst-panel .yst-start-grid .yst-field-minutes { grid-area: minutes; }
 #yst-panel .yst-start-grid .yst-start-button { grid-area: start; }
 #yst-panel .yst-start-grid .yst-start-chips { grid-area: chips; }
+#yst-panel .yst-start-grid .yst-stats-button { grid-area: stats; }
 
 /* Topic, Minutes and Start are all exactly 48px tall. The height is pinned on the
    field and its input so nothing (theme or page) can stretch them. */
@@ -340,6 +340,12 @@ html[dark] #yst-panel {
   justify-self: end;
   height: 48px;
   border-radius: 24px;
+}
+
+/* Stats spans from the Minutes field's left edge to the Start button's right edge */
+#yst-panel .yst-stats-button {
+  justify-self: stretch;
+  justify-content: center;
 }
 
 /* One row of chips under the form, from the left edge: recent topics, a thin
@@ -411,15 +417,16 @@ html[dark] #yst-panel {
   margin-top: 12px;
 }
 
-/* Narrow windows: Topic on its own row, then Minutes + Start, then the chips
-   (recent topics and durations on their own lines, no divider). The header's
-   labelled buttons become icon buttons with a tooltip. */
+/* Narrow windows: Topic on its own row, then Minutes + Start, Stats, then the
+   chips (recent topics and durations on their own lines, no divider). The header's
+   "Set daily & weekly goals" button becomes an icon button with a tooltip. */
 @media (max-width: 720px) {
   #yst-panel .yst-start-grid {
     grid-template-columns: 112px minmax(0, 1fr);
     grid-template-areas:
       'topic   topic'
       'minutes start'
+      'stats   stats'
       'chips   chips';
   }
 
