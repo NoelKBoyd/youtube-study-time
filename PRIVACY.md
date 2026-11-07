@@ -1,8 +1,8 @@
-# Privacy Policy: Study Time for YouTube
+# Privacy Policy: Study Time
 
 Last updated: 7 November 2026
 
-Study Time for YouTube is a Chrome extension. It does not have accounts, servers or analytics, and the developer does not receive any of your data.
+Study Time is a Chrome extension for YouTube. It does not have accounts, servers or analytics, and the developer does not receive any of your data.
 
 ## What is stored on your device
 
