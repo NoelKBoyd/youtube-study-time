@@ -1,99 +1,76 @@
+/* YouTube Study Time - toolbar popup. Components and colours come from theme.css. */
+
 body {
-  width: 280px;
-  margin: 0;
+  width: 360px;
   padding: 16px;
-  font-family: Roboto, Arial, sans-serif;
-  font-size: 14px;
-  color: #0f0f0f;
 }
 
-h1 {
-  font-size: 16px;
-  margin: 0 0 12px;
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-label {
-  display: block;
-  margin-bottom: 12px;
-  color: #444;
+.popup-logo {
+  color: var(--yst-primary);
 }
 
-input {
-  display: block;
-  box-sizing: border-box;
+.popup-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.popup-wide {
   width: 100%;
-  margin-top: 4px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font: inherit;
 }
 
-button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 18px;
-  background: #2e7d32;
-  color: #ffffff;
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
+.popup-topic {
+  overflow-wrap: anywhere;
 }
 
-button.secondary {
-  background: #e0e0e0;
-  color: #0f0f0f;
-}
-
-.warning {
-  margin: 12px 0 0;
-  padding: 8px;
-  border-radius: 6px;
-  background: #fff4e5;
-  font-size: 13px;
-}
-
-.label {
-  margin: 0;
-  font-size: 12px;
-  color: #606060;
-  text-transform: uppercase;
-}
-
-.topic {
-  margin: 4px 0 8px;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.countdown {
-  margin: 0 0 16px;
-  font-size: 32px;
-  font-weight: 500;
-  color: #2e7d32;
+.popup-countdown {
+  color: var(--yst-primary);
+  font: 400 32px/40px var(--yst-font);
   font-variant-numeric: tabular-nums;
 }
 
-footer {
+/* "Today: 25 m" row, with the daily goal's progress when one is set */
+.popup-today {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--yst-surface-container);
+  font: 500 14px/20px var(--yst-font);
+  letter-spacing: 0.1px;
+}
+
+.popup-today > .yst-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--yst-primary);
+}
+
+.popup-today-text {
+  flex: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.popup-today .yst-progress {
+  flex-basis: 100%;
+  margin-left: 32px;
+}
+
+.popup-footer {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
   gap: 8px;
-  margin-top: 16px;
-  font-size: 12px;
-}
-
-footer .today {
-  color: #606060;
-}
-
-footer .links {
-  display: flex;
-  gap: 12px;
-  margin-left: auto;
-}
-
-a {
-  color: #065fd4;
+  margin: 16px -4px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--yst-outline-variant);
 }

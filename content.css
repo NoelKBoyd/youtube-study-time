@@ -45,25 +45,24 @@ html.yst-active:has(#yst-panel.yst-home) #frosted-glass.with-chipbar {
   height: var(--ytd-masthead-height, 56px) !important;
 }
 
-/* ---------- Study panel ---------- */
+
+/* ---------- Study panel ----------
+   Colours, buttons, fields, chips and the rest come from theme.css (injected before
+   this file), whose tokens are set on #yst-panel. This part only lays the panel out.
+   Everything is scoped under #yst-panel so YouTube's CSS and ours stay apart. */
 
 #yst-panel {
-  --yst-bg: #ffffff;
-  --yst-text: #0f0f0f;
-  --yst-muted: #606060;
-  --yst-soft: #f2f2f2;
-  --yst-accent: #2e7d32;
-  font-family: Roboto, Arial, sans-serif;
-  color: var(--yst-text);
+  /* Follow YouTube's theme, not the system's: theme.css's light-dark() tokens read this. */
+  color-scheme: light;
+  color: var(--yst-on-surface);
+  font: 400 14px/20px var(--yst-font);
+  letter-spacing: 0.25px;
+  text-align: left;
 }
 
 /* YouTube sets the "dark" attribute on <html> in dark theme */
 html[dark] #yst-panel {
-  --yst-bg: #0f0f0f;
-  --yst-text: #f1f1f1;
-  --yst-muted: #aaaaaa;
-  --yst-soft: #272727;
-  --yst-accent: #66bb6a;
+  color-scheme: dark;
 }
 
 /* Watch page: sits where the sidebar was */
@@ -81,13 +80,15 @@ html[dark] #yst-panel {
   max-width: calc(100vw - 32px);
   z-index: 2000;
   overflow-y: auto;
+  box-sizing: border-box;
   padding: 12px;
-  border-radius: 12px;
-  background: var(--yst-bg);
+  border-radius: 16px;
+  background: var(--yst-surface);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
 }
 
-/* Home page: fills YouTube's main content area, next to the left menu */
+/* Home page: fills YouTube's main content area, next to the left menu, on YouTube's
+   own page background */
 #yst-panel.yst-home {
   /* ytd-page-manager can be a flex container, which would size the panel to its
      content (half the width on a wide window). Take the full width explicitly. */
@@ -98,7 +99,7 @@ html[dark] #yst-panel {
   min-height: calc(100vh - 56px);
   padding: 24px 32px;
   box-sizing: border-box;
-  background: var(--yst-bg);
+  background: var(--yt-spec-base-background, var(--yst-surface));
 }
 
 /* Home page fallback: covers the page below YouTube's top bar */
@@ -111,368 +112,307 @@ html[dark] #yst-panel {
   z-index: 2000;
   overflow-y: auto;
   padding: 24px 32px;
-  background: var(--yst-bg);
+  background: var(--yt-spec-base-background, var(--yst-surface));
 }
 
-.yst-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  background: var(--yst-soft);
-}
+/* ---------- Session header: title, topic, countdown, Edit ---------- */
 
-/* Home page, no session: slim bar inside YouTube's feed, between the filter chips
-   and the videos, to start one. Side margins line it up with the edges of the grid. */
-#yst-panel.yst-start {
+#yst-panel .yst-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  padding: 12px 12px 12px 16px;
+  border-radius: 16px;
+  background: var(--yst-surface-container);
+}
+
+#yst-panel .yst-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+#yst-panel .yst-header-title > .yst-icon,
+#yst-panel .yst-title > .yst-icon {
+  color: var(--yst-primary);
+}
+
+#yst-panel .yst-header-text {
+  min-width: 0;
+}
+
+#yst-panel .yst-label {
+  color: var(--yst-on-surface-variant);
+  font: 500 12px/16px var(--yst-font);
+  letter-spacing: 0.5px;
+}
+
+#yst-panel .yst-topic {
+  font: 500 16px/24px var(--yst-font);
+  letter-spacing: 0.15px;
+  overflow-wrap: anywhere;
+}
+
+#yst-panel .yst-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* On the home page the header sits above a grid of large cards: give it more room */
+#yst-panel:is(.yst-home, .yst-overlay) .yst-header {
+  margin-bottom: 24px;
+}
+
+/* "9:59 left" in a primary-container chip */
+#yst-panel .yst-countdown-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 8px;
+  border-radius: 8px;
+  background: var(--yst-primary-container);
+  color: var(--yst-on-primary-container);
+  font: 500 14px/20px var(--yst-font);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#yst-panel .yst-countdown-chip > .yst-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Inline editor, below the header ---------- */
+
+#yst-panel .yst-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: -4px 0 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--yst-surface-container);
+  --yst-field-bg: var(--yst-surface-container);
+}
+
+#yst-panel .yst-editor .yst-field-topic {
+  flex: 1 1 200px;
+}
+
+#yst-panel .yst-editor .yst-field-minutes {
+  flex: 0 0 144px;
+}
+
+#yst-panel .yst-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-basis: 100%;
+}
+
+#yst-panel .yst-actions .yst-danger {
+  margin-left: auto;
+}
+
+#yst-panel .yst-editor .yst-error {
+  flex-basis: 100%;
+}
+
+/* ---------- Start bar (home page, no session) ----------
+   Inside YouTube's feed, between the filter chips and the videos. Side margins line
+   it up with the edges of the grid. Two rows: title + goals + Stats + ×, then the form,
+   which stays on one line on wide screens and wraps on narrow ones. */
+
+#yst-panel.yst-start {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   flex: none;
   align-self: stretch; /* the grid is a centred flex column */
   box-sizing: border-box;
   margin: 24px calc(var(--ytd-rich-grid-item-margin, 16px) / 2 + var(--ytd-rich-grid-gutter-margin, 24px)) 0;
-  padding: 12px 24px;
-  background: var(--yst-soft);
-  border-radius: 12px;
+  padding: 16px 16px 20px 24px;
+  border-radius: 16px;
+  background: var(--yst-surface-container);
+  --yst-field-bg: var(--yst-surface-container);
 }
 
-/* Top row of the start bar: label | goal progress, Stats button, × */
-.yst-start-head {
+#yst-panel .yst-start-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
-  flex-basis: 100%;
+  gap: 8px;
 }
 
-.yst-start-head .yst-label {
+#yst-panel .yst-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-right: auto;
+  font: 500 16px/24px var(--yst-font);
+  letter-spacing: 0.15px;
 }
 
-.yst-goals {
+#yst-panel .yst-goals {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.yst-goal,
-.yst-goal-placeholder,
-.yst-stats-button {
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  min-height: 32px;
-  border-radius: 16px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--yst-text);
-  cursor: pointer;
-}
-
-/* One goal: "TODAY  25 m / 1 h" with a thin progress line underneath */
-.yst-goal {
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  gap: 4px;
-  min-width: 150px;
-  padding: 5px 14px 6px;
-  border: none;
-  background: var(--yst-bg);
-}
-
-.yst-goal-text {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.yst-goal-label {
-  font-size: 11px;
-  color: var(--yst-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.yst-goal-value {
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-.yst-goal-track {
-  display: block;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--yst-soft);
-  overflow: hidden;
-}
-
-.yst-goal-fill {
-  display: block;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--yst-accent);
-  transition: width 0.4s ease;
-}
-
-.yst-goal-done .yst-goal-value {
-  color: var(--yst-accent);
-}
-
-.yst-goal-unset .yst-goal-value,
-.yst-goal-placeholder {
-  color: var(--yst-muted);
-}
-
-/* No goals at all: a dashed "add" pill */
-.yst-goal-placeholder {
-  padding: 0 14px;
-  border: 1px dashed var(--yst-muted);
-  background: transparent;
-}
-
-.yst-goal-placeholder::before {
-  content: '+';
-  margin-right: 6px;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.yst-stats-button {
-  gap: 6px;
-  padding: 0 14px 0 10px;
-  border: 1px solid var(--yst-accent);
-  background: transparent;
-  color: var(--yst-accent);
-  font-weight: 500;
-}
-
-.yst-icon {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-
-.yst-goal:hover,
-.yst-goal-placeholder:hover {
-  outline: 1px solid var(--yst-muted);
-}
-
-.yst-goal-placeholder:hover {
-  color: var(--yst-text);
-}
-
-.yst-stats-button:hover {
-  background: var(--yst-accent);
-  color: #ffffff;
-}
-
-html[dark] .yst-stats-button:hover {
-  color: #0f0f0f;
-}
-
-.yst-goal:focus-visible,
-.yst-goal-placeholder:focus-visible,
-.yst-stats-button:focus-visible,
-.yst-dismiss:focus-visible {
-  outline: 2px solid var(--yst-accent);
-  outline-offset: 2px;
-}
-
-.yst-start .yst-field {
-  flex-basis: 240px;
-  flex-grow: 0;
-}
-
-.yst-start .yst-field-minutes {
-  flex-basis: 100px;
-}
-
-.yst-start .yst-button {
-  margin-bottom: 0;
-}
-
-.yst-dismiss {
-  padding: 0 2px;
-  border: none;
-  background: transparent;
-  color: var(--yst-muted);
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.yst-start .yst-error {
-  flex-basis: 100%;
-  margin: 0;
-}
-
-#yst-panel [hidden] {
-  display: none !important;
-}
-
-.yst-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.yst-edit-button {
-  padding: 4px 12px;
-  border: 1px solid var(--yst-muted);
-  border-radius: 14px;
-  background: transparent;
-  color: var(--yst-text);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.yst-edit-button:hover {
-  background: var(--yst-bg);
-}
-
-/* Inline form for changing topic / time, below the header */
-.yst-editor {
+#yst-panel .yst-start-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
-  padding: 12px 16px;
-  margin: -4px 0 12px;
-  border-radius: 12px;
-  background: var(--yst-soft);
+  align-items: center;
+  gap: 12px 16px;
+  padding-right: 8px;
 }
 
-.yst-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1 1 180px;
-  font-size: 12px;
-  color: var(--yst-muted);
+#yst-panel .yst-start-row .yst-field-topic {
+  flex: 1 1 240px;
+  min-width: min(240px, 100%);
+  max-width: 640px;
 }
 
-.yst-field-minutes {
+#yst-panel .yst-start-row .yst-field-minutes {
   flex: 0 0 100px;
 }
 
-.yst-input {
-  padding: 8px 10px;
-  border: 1px solid var(--yst-muted);
-  border-radius: 8px;
-  background: var(--yst-bg);
-  color: var(--yst-text);
-  font: inherit;
-  font-size: 14px;
-}
-
-.yst-input:focus {
-  outline: 2px solid var(--yst-accent);
-  outline-offset: -1px;
-}
-
-.yst-actions {
+#yst-panel .yst-picks {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.yst-actions .yst-button {
-  margin-bottom: 0;
-}
-
-.yst-button.yst-secondary {
-  background: transparent;
-  color: var(--yst-text);
-  border: 1px solid var(--yst-muted);
-}
-
-.yst-button.yst-danger {
-  background: #c62828;
-}
-
-.yst-editor .yst-error {
-  flex-basis: 100%;
+/* One goal: "Today  25 m / 1 h" with a thin progress line, as a 32px outlined chip */
+#yst-panel .yst-goal {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  min-width: 150px;
+  height: 32px;
   margin: 0;
-}
-
-.yst-label {
-  font-size: 12px;
-  color: var(--yst-muted);
-  text-transform: uppercase;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--yst-outline);
+  background: transparent;
+  color: var(--yst-on-surface);
+  font: 500 12px/16px var(--yst-font);
   letter-spacing: 0.5px;
+  cursor: pointer;
 }
 
-.yst-topic {
-  font-size: 16px;
-  font-weight: 500;
-  margin-top: 2px;
+/* Same state layer as theme.css's chips */
+#yst-panel .yst-goal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms var(--yst-ease);
 }
 
-.yst-countdown {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--yst-accent);
+#yst-panel .yst-goal:hover::before {
+  opacity: 0.08;
+}
+
+#yst-panel .yst-goal:is(:focus-visible, :active)::before {
+  opacity: 0.1;
+}
+
+#yst-panel .yst-goal-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+#yst-panel .yst-goal-label {
+  color: var(--yst-on-surface-variant);
+}
+
+#yst-panel .yst-goal-value {
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
+
+#yst-panel .yst-goal-done .yst-goal-value {
+  color: var(--yst-primary);
+}
+
+#yst-panel .yst-goal-unset .yst-goal-value {
+  color: var(--yst-on-surface-variant);
+}
+
+#yst-panel .yst-goal .yst-progress {
+  height: 3px;
+}
+
+/* ---------- Study feed ---------- */
 
 /* List of videos: a column in the sidebar, a grid on the home page */
-.yst-list {
+#yst-panel .yst-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.yst-home .yst-list,
-.yst-overlay .yst-list {
+#yst-panel.yst-home .yst-list,
+#yst-panel.yst-overlay .yst-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px 16px;
 }
 
-.yst-card {
+/* A video card (not theme.css's .yst-filled-card) */
+#yst-panel .yst-card {
   display: flex;
   gap: 8px;
+  border-radius: 12px;
   color: inherit;
   text-decoration: none;
-  border-radius: 8px;
+  transition: background-color 150ms var(--yst-ease);
 }
 
-.yst-card:hover {
-  background: var(--yst-soft);
+#yst-panel .yst-card:hover {
+  background: var(--yst-surface-container);
 }
 
-.yst-thumb {
+#yst-panel .yst-thumb {
   flex-shrink: 0;
   width: 168px;
   height: 94px;
   overflow: hidden;
   border-radius: 8px;
-  background: var(--yst-soft);
+  background: var(--yst-surface-container-high);
 }
 
-.yst-thumb img {
+#yst-panel .yst-thumb img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.yst-home .yst-card,
-.yst-overlay .yst-card {
+#yst-panel.yst-home .yst-card,
+#yst-panel.yst-overlay .yst-card {
   display: block;
 }
 
-.yst-home .yst-thumb,
-.yst-overlay .yst-thumb {
+#yst-panel.yst-home .yst-thumb,
+#yst-panel.yst-overlay .yst-thumb {
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
@@ -480,51 +420,45 @@ html[dark] .yst-stats-button:hover {
   border-radius: 12px;
 }
 
-.yst-video-title {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  margin-bottom: 4px;
+#yst-panel .yst-info {
+  min-width: 0;
+  padding-right: 4px;
+}
+
+#yst-panel .yst-video-title {
   display: -webkit-box;
+  margin-bottom: 4px;
+  overflow: hidden;
+  font: 500 14px/20px var(--yst-font);
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.yst-channel {
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--yst-muted);
+#yst-panel .yst-channel {
+  color: var(--yst-on-surface-variant);
+  font: 400 12px/18px var(--yst-font);
+  letter-spacing: 0.4px;
 }
 
-.yst-status {
-  font-size: 14px;
-  color: var(--yst-muted);
+/* "Loading…", "End of results." or an error with what to do next */
+#yst-panel .yst-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
   padding: 12px 0;
+  color: var(--yst-on-surface-variant);
 }
 
-.yst-error {
-  margin: 0 0 8px;
-  color: var(--yst-text);
+#yst-panel .yst-status .yst-banner {
+  align-self: stretch;
+  margin: 0;
 }
 
-.yst-button {
-  display: block;
-  margin-bottom: 8px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 18px;
-  background: var(--yst-accent);
-  color: #ffffff;
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
+#yst-panel .yst-error {
+  margin: 0;
 }
 
-.yst-link {
-  color: #3ea6ff;
-}
-
-.yst-sentinel {
+#yst-panel .yst-sentinel {
   height: 1px;
 }

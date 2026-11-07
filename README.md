@@ -66,7 +66,10 @@ By default a key gets **100 searches per day**. Each page of results (up to 50 v
 | `background.js` | Session timer (alarms, badge, notification), the session log, and all YouTube API calls, with caching |
 | `shared.js` | Level thresholds, default goals, `topicKey()` and date helpers, shared by the worker and the pages |
 | `content.js` | Runs on youtube.com: detects page changes, hides suggestions and builds the study feed |
-| `content.css` | Hides YouTube's suggestions and styles the feed (light and dark theme) |
+| `content.css` | Hides YouTube's suggestions and lays out the study panel (follows YouTube's light or dark theme) |
+| `theme.css` | The shared design system (Material 3 style colours, type, buttons, fields, chips, tables, dialog, snackbar), used by every page and the panel |
+| `ui.js` | Material Symbols icons (`makeIcon()`) and the snackbar, shared by the pages and the content script |
+| `fonts.css`, `fonts/` | Roboto, bundled for the extension's pages (SIL Open Font License) |
 | `popup.html/.js/.css` | Toolbar popup for starting a session, showing the countdown and stopping, with today's total and a link to the stats |
 | `options.html/.js/.css` | Settings page for the API key and the cache |
 | `stats.html/.js/.css` | Stats page: totals, goals, streaks, topics, history, export |

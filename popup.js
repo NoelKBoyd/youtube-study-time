@@ -1,6 +1,8 @@
 // YouTube Study Time - toolbar popup
 // Start a session (topic + minutes), or see the countdown and stop early.
 
+fillIcons();
+
 const startView = document.getElementById('start-view');
 const sessionView = document.getElementById('session-view');
 const topicInput = document.getElementById('topic');
@@ -8,19 +10,19 @@ const minutesInput = document.getElementById('minutes');
 const keyWarning = document.getElementById('key-warning');
 const currentTopic = document.getElementById('current-topic');
 const countdown = document.getElementById('countdown');
+const todayRow = document.getElementById('today');
 const todayTotal = document.getElementById('today-total');
+const todayGoal = document.getElementById('today-goal');
+const todayProgress = document.getElementById('today-progress');
 
 let countdownTimer = null;
 
 async function render() {
-  const { session, apiKey, lastTopic, lastMinutes, sessionLog } = await chrome.storage.local.get([
-    'session', 'apiKey', 'lastTopic', 'lastMinutes', 'sessionLog'
+  const { session, apiKey, lastTopic, lastMinutes, sessionLog, goals } = await chrome.storage.local.get([
+    'session', 'apiKey', 'lastTopic', 'lastMinutes', 'sessionLog', 'goals'
   ]);
   const active = session && session.endTime > Date.now();
-
-  // Finished sessions only; the running one is added to the log when it ends.
-  const today = minutesBetween(sessionLog, startOfDay(Date.now()), Infinity);
-  todayTotal.textContent = today > 0 ? `Today: ${formatMinutes(today)}` : '';
+  renderToday(sessionLog, goals);
 
   startView.hidden = active;
   sessionView.hidden = !active;
@@ -41,6 +43,23 @@ async function render() {
     if (lastTopic) topicInput.value = lastTopic;
     if (lastMinutes) minutesInput.value = lastMinutes;
     topicInput.focus();
+  }
+}
+
+// "Today: 25 m", plus "of 1 h" and a progress bar when a daily goal is set.
+// Finished sessions only; the running one is added to the log when it ends.
+function renderToday(sessionLog, goals) {
+  const today = minutesBetween(sessionLog, startOfDay(Date.now()), Infinity);
+  const dailyMin = goals && goals.dailyMin > 0 ? goals.dailyMin : 0;
+  todayRow.hidden = !(today > 0 || dailyMin);
+  todayTotal.textContent = todayRow.hidden ? '' : `Today: ${formatMinutes(today)}`;
+  todayGoal.textContent = dailyMin ? ` of ${formatMinutes(dailyMin)}` : '';
+  todayProgress.hidden = !dailyMin;
+  if (dailyMin) {
+    todayProgress.setAttribute('aria-valuemin', '0');
+    todayProgress.setAttribute('aria-valuemax', String(Math.round(dailyMin)));
+    todayProgress.setAttribute('aria-valuenow', String(Math.round(Math.min(today, dailyMin))));
+    todayProgress.firstElementChild.style.width = `${Math.min(100, (today / dailyMin) * 100)}%`;
   }
 }
 
@@ -66,7 +85,7 @@ document.getElementById('open-stats').addEventListener('click', (event) => {
   window.close();
 });
 
-for (const link of document.querySelectorAll('.open-options')) {
+for (const link of document.querySelectorAll('.open-options')) { // a link and a button
   link.addEventListener('click', (event) => {
     event.preventDefault();
     chrome.runtime.openOptionsPage();

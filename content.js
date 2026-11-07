@@ -11,9 +11,11 @@
 //   - lets the user edit or stop the session from the panel itself
 // With no session, the home page gets a slim "start studying" bar instead, which
 // also shows progress towards the daily/weekly goals and links to the stats page.
-// shared.js is loaded before this file (see manifest.json) for the date/format helpers.
+// shared.js (date/format helpers) and ui.js (icons) are loaded before this file
+// (see manifest.json). Styles: theme.css (shared design system) and content.css.
 
 const MAX_PAGES = 10; // safety limit: at most 10 API calls per page view
+const QUICK_MINUTES = [15, 25, 45, 60]; // quick-pick chips next to the start bar's Minutes field
 
 // YouTube's page structure is not a public API and changes now and then.
 // Every element name this script depends on is listed here (plus the top of content.css).
@@ -141,13 +143,18 @@ function createPanel(layout) {
   el.id = 'yst-panel';
 
   const header = make('div', 'yst-header');
-  const titleBox = make('div');
-  titleBox.append(make('div', 'yst-label', 'Study time'), make('div', 'yst-topic', session.topic));
-  const countdown = make('div', 'yst-countdown');
-  const editButton = make('button', 'yst-edit-button', 'Edit');
+  const titleText = make('div', 'yst-header-text');
+  titleText.append(make('div', 'yst-label', 'Study time'), make('div', 'yst-topic', session.topic));
+  const titleBox = make('div', 'yst-header-title');
+  titleBox.append(makeIcon('school'), titleText);
+  const countdown = make('span', 'yst-countdown');
+  const countdownChip = make('span', 'yst-countdown-chip');
+  countdownChip.append(makeIcon('schedule'), countdown);
+  const editButton = make('button', 'yst-button yst-text yst-edit-button');
   editButton.type = 'button';
+  editButton.append(makeIcon('edit'), 'Edit');
   const headerRight = make('div', 'yst-header-right');
-  headerRight.append(countdown, editButton);
+  headerRight.append(countdownChip, editButton);
   header.append(titleBox, headerRight);
 
   const editor = createEditor(() => {
@@ -180,21 +187,22 @@ function createPanel(layout) {
 // session and its alarm); the storage change then rebuilds the panel with the new values.
 function createEditor(close) {
   const form = make('form', 'yst-editor');
-  const { topicInput, minutesInput, topicLabel, minutesLabel } = sessionFields('Topic', 'Minutes left');
+  const { topicInput, minutesInput, topicField, minutesField } = sessionFields('Topic', 'Minutes left');
 
   const save = make('button', 'yst-button', 'Save');
   save.type = 'submit';
-  const cancel = make('button', 'yst-button yst-secondary', 'Cancel');
+  const cancel = make('button', 'yst-button yst-text', 'Cancel');
   cancel.type = 'button';
-  const stop = make('button', 'yst-button yst-danger', 'Stop session');
+  const stop = make('button', 'yst-button yst-text yst-danger');
   stop.type = 'button';
+  stop.append(makeIcon('stop_circle'), 'Stop session');
   const actions = make('div', 'yst-actions');
   actions.append(save, cancel, stop);
 
-  const error = make('p', 'yst-error');
+  const error = make('p', 'yst-banner yst-error');
   error.hidden = true;
 
-  form.append(topicLabel, minutesLabel, actions, error);
+  form.append(topicField, minutesField, actions, error);
 
   form.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') close();
@@ -224,7 +232,7 @@ function createEditor(close) {
 function createStartBar({ lastTopic, lastMinutes }) {
   const form = make('form', 'yst-start');
   form.id = 'yst-panel';
-  const { topicInput, minutesInput, topicLabel, minutesLabel } = sessionFields(
+  const { topicInput, minutesInput, topicField, minutesField } = sessionFields(
     'What are you studying?',
     'Minutes'
   );
@@ -232,27 +240,35 @@ function createStartBar({ lastTopic, lastMinutes }) {
   topicInput.value = lastTopic || '';
   minutesInput.value = lastMinutes || 45;
 
-  const start = make('button', 'yst-button', 'Start studying');
+  const start = make('button', 'yst-button yst-start-button');
   start.type = 'submit';
-  const dismiss = make('button', 'yst-dismiss', '×');
+  start.append(makeIcon('play_arrow'), 'Start studying');
+  const dismiss = make('button', 'yst-icon-button yst-dismiss');
   dismiss.type = 'button';
-  dismiss.title = 'Hide for this tab';
   dismiss.setAttribute('aria-label', 'Hide for this tab');
+  dismiss.dataset.tooltip = 'Hide for this tab';
+  dismiss.append(makeIcon('close'));
 
-  const error = make('p', 'yst-error');
+  const error = make('p', 'yst-banner yst-error');
   error.hidden = true;
   const send = sender(error);
 
-  // Header row: label on the left; goal progress, Stats button and × on the right.
+  // Header row: title on the left; goal progress, Stats button and × on the right.
+  const title = make('div', 'yst-title');
+  title.append(makeIcon('school'), make('span', '', 'Study time'));
   const goals = make('div', 'yst-goals');
-  const statsButton = make('button', 'yst-stats-button');
+  const statsButton = make('button', 'yst-button yst-tonal yst-stats-button');
   statsButton.type = 'button';
   statsButton.title = 'Open your study stats';
-  statsButton.append(chartIcon(), document.createTextNode('Stats'));
+  statsButton.append(makeIcon('bar_chart'), 'Stats');
   const head = make('div', 'yst-start-head');
-  head.append(make('div', 'yst-label', 'Study time'), goals, statsButton, dismiss);
+  head.append(title, goals, statsButton, dismiss);
 
-  form.append(head, topicLabel, minutesLabel, start, error);
+  // Form row: topic, minutes (with quick picks) and Start, wrapping on narrow windows.
+  const row = make('div', 'yst-start-row');
+  row.append(topicField, minutesField, minutePicks(minutesInput), start);
+
+  form.append(head, row, error);
   keepKeysFromYouTube(form);
 
   form.addEventListener('submit', (event) => {
@@ -286,8 +302,9 @@ function renderGoals(container, { dailyMin, weeklyMin }, log, send) {
   container.replaceChildren();
 
   if (!(dailyMin > 0) && !(weeklyMin > 0)) {
-    const setGoals = make('button', 'yst-goal-placeholder', 'Set your daily & weekly goals');
+    const setGoals = make('button', 'yst-chip yst-goal-placeholder');
     setGoals.type = 'button';
+    setGoals.append(makeIcon('flag'), 'Set your daily & weekly goals');
     setGoals.addEventListener('click', openGoals);
     container.append(setGoals);
     return;
@@ -308,8 +325,8 @@ function renderGoals(container, { dailyMin, weeklyMin }, log, send) {
       item.classList.toggle('yst-goal-done', reached);
       item.title = `${label}: ${formatMinutes(done)} of ${formatMinutes(target)}`;
       text.append(make('span', 'yst-goal-value', `${reached ? '✓ ' : ''}${formatMinutes(done)} / ${formatMinutes(target)}`));
-      const track = make('span', 'yst-goal-track');
-      const fill = make('span', 'yst-goal-fill');
+      const track = make('span', 'yst-progress');
+      const fill = make('span', 'yst-progress-fill');
       fill.style.width = `${Math.min(100, (done / target) * 100)}%`;
       track.append(fill);
       item.append(text, track);
@@ -323,19 +340,29 @@ function renderGoals(container, { dailyMin, weeklyMin }, log, send) {
   }
 }
 
-// Small bar-chart icon for the Stats button (SVG built node by node, no innerHTML).
-function chartIcon() {
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('yst-icon');
-  for (const [x, y, h] of [[4, 13, 7], [10, 8, 12], [16, 4, 16]]) {
-    const bar = document.createElementNS(ns, 'rect');
-    for (const [name, value] of Object.entries({ x, y, width: 4, height: h, rx: 1 })) bar.setAttribute(name, value);
-    svg.append(bar);
-  }
-  return svg;
+// Chips that fill the Minutes field with a common length. The matching chip shows as
+// selected, also when the number is typed.
+function minutePicks(minutesInput) {
+  const group = make('div', 'yst-picks');
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', 'Quick pick minutes');
+  const chips = QUICK_MINUTES.map((minutes) => {
+    const chip = make('button', 'yst-chip', String(minutes));
+    chip.type = 'button';
+    chip.setAttribute('aria-label', `${minutes} minutes`);
+    chip.addEventListener('click', () => {
+      minutesInput.value = minutes;
+      sync();
+    });
+    return chip;
+  });
+  const sync = () => {
+    chips.forEach((chip, i) => chip.setAttribute('aria-pressed', String(Number(minutesInput.value) === QUICK_MINUTES[i])));
+  };
+  minutesInput.addEventListener('input', sync);
+  sync();
+  group.append(...chips);
+  return group;
 }
 
 function startBarDismissed() {
@@ -348,22 +375,37 @@ function startBarDismissed() {
 
 // Topic + minutes inputs, shared by the start bar and the session editor.
 function sessionFields(topicText, minutesText) {
-  const topicInput = make('input', 'yst-input');
+  const topicInput = make('input');
   topicInput.type = 'text';
   topicInput.required = true;
   topicInput.maxLength = 100;
-  const topicLabel = make('label', 'yst-field', topicText);
-  topicLabel.append(topicInput);
+  const topicField = outlinedField(topicInput, topicText);
+  topicField.classList.add('yst-field-topic');
 
-  const minutesInput = make('input', 'yst-input');
+  const minutesInput = make('input');
   minutesInput.type = 'number';
   minutesInput.required = true;
   minutesInput.min = '1';
   minutesInput.max = '600';
-  const minutesLabel = make('label', 'yst-field yst-field-minutes', minutesText);
-  minutesLabel.append(minutesInput);
+  const minutesField = outlinedField(minutesInput, minutesText, 'min');
+  minutesField.classList.add('yst-field-minutes');
 
-  return { topicInput, minutesInput, topicLabel, minutesLabel };
+  return { topicInput, minutesInput, topicField, minutesField };
+}
+
+// theme.css's outlined text field: <label class="yst-field"> with the input, its
+// floating label and an optional suffix. The floating label needs a placeholder.
+function outlinedField(input, labelText, suffix) {
+  input.classList.add('yst-field-input');
+  input.placeholder = ' ';
+  const field = make('label', 'yst-field');
+  field.append(input, make('span', 'yst-field-label', labelText));
+  if (suffix) {
+    const suffixEl = make('span', 'yst-field-suffix', suffix);
+    suffixEl.setAttribute('aria-hidden', 'true');
+    field.append(suffixEl);
+  }
+  return field;
 }
 
 // Starts (or restarts) the session. The background worker writes `session`,
@@ -505,10 +547,11 @@ const ERROR_MESSAGES = {
 
 function showError(status, error, topic) {
   status.textContent = '';
-  status.append(make('p', 'yst-error', ERROR_MESSAGES[error] || ERROR_MESSAGES.api));
+  status.append(make('p', 'yst-banner yst-error', ERROR_MESSAGES[error] || ERROR_MESSAGES.api));
 
   if (error === 'nokey' || error === 'badkey' || error === 'disabled') {
     const button = make('button', 'yst-button', 'Open settings');
+    button.type = 'button';
     button.addEventListener('click', () => chrome.runtime.sendMessage({ type: 'openOptions' }));
     status.append(button);
   }

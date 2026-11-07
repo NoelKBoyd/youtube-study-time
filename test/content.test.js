@@ -211,6 +211,31 @@ test('home page with no session: a start bar starts one with the last values', a
   page.close();
 });
 
+test('start bar quick-pick chips fill the Minutes field and show which one matches', async () => {
+  const page = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE, storage: { lastTopic: 'physics', lastMinutes: 25 } });
+  await flush();
+  const bar = page.document.querySelector('.yst-start');
+  const minutesInput = bar.querySelectorAll('input')[1];
+  const chips = [...bar.querySelectorAll('.yst-picks .yst-chip')];
+  const pressed = () => chips.filter((chip) => chip.getAttribute('aria-pressed') === 'true').map((chip) => chip.textContent);
+  assert.deepEqual(chips.map((chip) => chip.textContent), ['15', '25', '45', '60']);
+  assert.deepEqual(pressed(), ['25']);
+
+  chips[3].click();
+  assert.equal(minutesInput.value, '60');
+  assert.deepEqual(pressed(), ['60']);
+
+  minutesInput.value = '50';
+  minutesInput.dispatchEvent(new page.window.Event('input'));
+  assert.deepEqual(pressed(), []);
+
+  chips[0].click();
+  bar.requestSubmit();
+  await flush();
+  assert.equal(page.chrome.runtime.sentMessages.at(-1).minutes, 15);
+  page.close();
+});
+
 test('start bar with no goals: a "set your goals" button, and a Stats button', async () => {
   const page = loadContent({ url: 'https://www.youtube.com/', html: HOME_PAGE });
   await flush();
@@ -238,7 +263,7 @@ test('start bar shows today and this week against the goals, and follows changes
   await flush();
   const goalTexts = () => [...page.document.querySelectorAll('.yst-goal')].map((g) => g.textContent);
   assert.deepEqual(goalTexts(), ['Today30 m / 1 h', 'This weekSet a goal']);
-  assert.equal(page.document.querySelector('.yst-goal-fill').style.width, '50%');
+  assert.equal(page.document.querySelector('.yst-goal .yst-progress-fill').style.width, '50%');
 
   await page.chrome.storage.local.set({ goals: { dailyMin: 30, weeklyMin: 120, perTopic: {} } });
   await flush();

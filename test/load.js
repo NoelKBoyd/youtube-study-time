@@ -25,6 +25,8 @@ export function loadBackground({ storage = {}, fetch } = {}) {
   return { chrome, context, get: (name) => vm.runInContext(name, context) };
 }
 
+const contentScripts = () => JSON.parse(source('manifest.json')).content_scripts[0].js;
+
 // Runs content.js inside a jsdom page at the given YouTube URL.
 // `html` is the page body before the script runs.
 export function loadContent({ url = 'https://www.youtube.com/', html = '', storage = {}, search } = {}) {
@@ -62,8 +64,8 @@ export function loadContent({ url = 'https://www.youtube.com/', html = '', stora
   // Run it as a classic script in the page's context, so its top-level consts
   // (ERROR_MESSAGES, MAX_PAGES, ...) stay readable by later get() calls.
   const vmContext = dom.getInternalVMContext();
-  // Same order as the manifest's content_scripts entry.
-  for (const file of ['shared.js', 'content.js']) vm.runInContext(source(file), vmContext, { filename: file });
+  // The manifest's content_scripts files, in the same order (shared.js, ui.js, content.js).
+  for (const file of contentScripts()) vm.runInContext(source(file), vmContext, { filename: file });
   const page = {
     dom,
     window,

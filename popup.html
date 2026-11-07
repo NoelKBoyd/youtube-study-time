@@ -1,46 +1,62 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="yst-theme">
 <head>
   <meta charset="utf-8">
   <title>YouTube Study Time</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>YouTube Study Time</h1>
+  <header class="popup-header">
+    <span data-icon="school" class="popup-logo"></span>
+    <h1 class="yst-title-medium">Study time</h1>
+  </header>
 
   <!-- Shown when no session is running -->
-  <form id="start-view">
-    <label>
-      What are you studying?
-      <input id="topic" type="text" required maxlength="100" placeholder="e.g. Embedded C STM32">
+  <form id="start-view" class="popup-stack">
+    <label class="yst-field">
+      <input id="topic" class="yst-field-input" type="text" required maxlength="100" placeholder="e.g. Embedded C STM32">
+      <span class="yst-field-label">What are you studying?</span>
     </label>
-    <label>
-      For how long? (minutes)
-      <input id="minutes" type="number" required min="1" max="600" value="45">
+    <label class="yst-field">
+      <input id="minutes" class="yst-field-input" type="number" required min="1" max="600" value="45" placeholder=" ">
+      <span class="yst-field-label">For how long?</span>
+      <span class="yst-field-suffix" aria-hidden="true">min</span>
     </label>
-    <button type="submit">Start studying</button>
-    <p id="key-warning" class="warning" hidden>
-      No API key set yet. <a href="#" class="open-options">Add one in settings</a>.
+    <button type="submit" class="yst-button popup-wide"><span data-icon="play_arrow"></span>Start studying</button>
+    <p id="key-warning" class="yst-banner" hidden>
+      <span data-icon="key"></span>
+      <span>No API key set yet. <a href="#" class="yst-link open-options">Add one in settings</a>.</span>
     </p>
   </form>
 
   <!-- Shown while a session is running -->
-  <div id="session-view" hidden>
-    <p class="label">Studying</p>
-    <p id="current-topic" class="topic"></p>
-    <p id="countdown" class="countdown"></p>
-    <button id="stop" class="secondary">Stop early</button>
+  <div id="session-view" class="popup-stack" hidden>
+    <div>
+      <p class="yst-label-medium yst-variant">Studying</p>
+      <p id="current-topic" class="popup-topic yst-title-medium"></p>
+    </div>
+    <p id="countdown" class="popup-countdown"></p>
+    <button id="stop" type="button" class="yst-button yst-tonal popup-wide">Stop early</button>
   </div>
 
-  <footer>
-    <span id="today-total" class="today" title="Session time today"></span>
-    <span class="links">
-      <a href="#" id="open-stats">View stats</a>
-      <a href="#" class="open-options">Settings</a>
+  <div id="today" class="popup-today" hidden>
+    <span data-icon="schedule"></span>
+    <span class="popup-today-text">
+      <span id="today-total" title="Session time today"></span>
+      <span id="today-goal" class="yst-variant"></span>
     </span>
+    <span id="today-progress" class="yst-progress" role="progressbar" aria-label="Daily goal" hidden><span class="yst-progress-fill"></span></span>
+  </div>
+
+  <footer class="popup-footer">
+    <button type="button" id="open-stats" class="yst-button yst-text"><span data-icon="bar_chart"></span>View stats</button>
+    <button type="button" class="yst-button yst-text open-options"><span data-icon="settings"></span>Settings</button>
   </footer>
 
   <script src="shared.js"></script>
+  <script src="ui.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
