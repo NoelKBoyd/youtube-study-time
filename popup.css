@@ -76,9 +76,22 @@ button.secondary {
 }
 
 footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
   margin-top: 16px;
-  text-align: right;
   font-size: 12px;
+}
+
+footer .today {
+  color: #606060;
+}
+
+footer .links {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
 }
 
 a {

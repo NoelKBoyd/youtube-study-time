@@ -8,14 +8,19 @@ const minutesInput = document.getElementById('minutes');
 const keyWarning = document.getElementById('key-warning');
 const currentTopic = document.getElementById('current-topic');
 const countdown = document.getElementById('countdown');
+const todayTotal = document.getElementById('today-total');
 
 let countdownTimer = null;
 
 async function render() {
-  const { session, apiKey, lastTopic, lastMinutes } = await chrome.storage.local.get([
-    'session', 'apiKey', 'lastTopic', 'lastMinutes'
+  const { session, apiKey, lastTopic, lastMinutes, sessionLog } = await chrome.storage.local.get([
+    'session', 'apiKey', 'lastTopic', 'lastMinutes', 'sessionLog'
   ]);
   const active = session && session.endTime > Date.now();
+
+  // Finished sessions only; the running one is added to the log when it ends.
+  const today = minutesBetween(sessionLog, startOfDay(Date.now()), Infinity);
+  todayTotal.textContent = today > 0 ? `Today: ${formatMinutes(today)}` : '';
 
   startView.hidden = active;
   sessionView.hidden = !active;
@@ -53,6 +58,12 @@ startView.addEventListener('submit', async (event) => {
 document.getElementById('stop').addEventListener('click', async () => {
   await chrome.runtime.sendMessage({ type: 'stop' });
   render();
+});
+
+document.getElementById('open-stats').addEventListener('click', (event) => {
+  event.preventDefault();
+  chrome.tabs.create({ url: chrome.runtime.getURL('stats.html') });
+  window.close();
 });
 
 for (const link of document.querySelectorAll('.open-options')) {
