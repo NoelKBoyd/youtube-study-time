@@ -38,6 +38,13 @@ html.yst-active ytd-browse[page-subtype="home"] {
   display: none !important;
 }
 
+/* The blurred backdrop behind YouTube's top bar is made taller ("with-chipbar") to
+   also cover the filter chips. The chips are hidden with the feed above, but the
+   backdrop would still cover the top of the study panel, so cut it back to the bar. */
+html.yst-active:has(#yst-panel.yst-home) #frosted-glass.with-chipbar {
+  height: var(--ytd-masthead-height, 56px) !important;
+}
+
 /* ---------- Study panel ---------- */
 
 #yst-panel {
