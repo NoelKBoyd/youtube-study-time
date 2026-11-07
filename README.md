@@ -22,7 +22,7 @@ Every session is recorded when it ends. Click **View stats** in the popup (or th
 - **Constellation:** each topic is a star that grows as it levels up (Spark 0 h, Curious 1 h, Steady 5 h, Focused 20 h, Deep 50 h, Mastery 100 h). A completed session makes its star twinkle.
 - **History** with per-entry delete, **Clear history** and **Export JSON**.
 
-Everything stays in Chrome's local storage. Nothing is uploaded.
+Everything stays in Chrome's local storage. The only thing sent anywhere is your topic and API key, to the YouTube Data API, to fetch the feed. See the [privacy policy](PRIVACY.md).
 
 ## Install
 
