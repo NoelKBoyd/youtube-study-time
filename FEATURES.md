@@ -1,6 +1,6 @@
 # YouTube Study Time: Features
 
-A full list of what the extension does today (v1.0.0), followed by the gaps that are the most obvious places to expand it.
+A full list of what the extension does today (v1.1.0), followed by the gaps that are the most obvious places to expand it.
 
 ## Study sessions
 
@@ -15,10 +15,23 @@ A full list of what the extension does today (v1.0.0), followed by the gaps that
 
 ## Controls
 
-- **Toolbar popup:** the start form when no session is running. During a session it shows the topic, a live countdown and a **Stop early** button. It warns you, with a link to settings, if no API key is set.
+- **Toolbar popup:** the start form when no session is running. During a session it shows the topic, a live countdown and a **Stop early** button. It warns you, with a link to settings, if no API key is set. Its footer shows today's session time and a **View stats** link.
 - **Edit button on the panel** (on the YouTube page itself): change the topic or the minutes left, or **Stop session**, without opening the popup. Esc or Cancel closes it.
 - **Start bar on the home page** when no session is running. It sits inside YouTube's feed, just above the videos. Its **×** hides it for that tab only.
 - **Typing in the forms doesn't trigger YouTube's shortcuts** (k, j, f, / and so on).
+
+## Stats, goals and topic mastery
+
+- **Every session is logged when it ends**, as `completed` (time ran out) or `stopped` (stopped early, or switched to another topic). It's logged once, by the background worker, even with several YouTube tabs open, with every YouTube tab closed, or after a browser restart.
+- **Editing the minutes keeps the time already studied.** The session's time is the time before the edit plus the time after it.
+- **Stats page** (from **View stats** in the popup, or by clicking the "Study session finished" notification): today, this week, current streak and best streak. Times are labelled *session time*, since the extension can't verify you were watching.
+- **Goals:** a daily and a weekly target in minutes, shown as progress bars, and an optional total target (in hours) per topic, shown on its row.
+- **Streaks** use local midnight. A day counts when its total reaches the daily goal, stopped sessions included; with no daily goal, it needs one completed session. Today not counting yet doesn't break the streak.
+- **Topics table:** total time, sessions, last studied and level, sortable by any column. "Rust" and " rust " are the same topic.
+- **Mastery levels:** Spark (0 h), Curious (1 h), Steady (5 h), Focused (20 h), Deep (50 h), Mastery (100 h).
+- **Constellation:** each topic is a star on a night sky, bigger and brighter (with sparkles from level 4) as it levels up. Hover, focus or click a star for its total and the time to the next level. A completed session makes its star twinkle. Stars keep their place as new topics appear.
+- **History**, newest first, 50 at a time, with a delete button per entry, **Clear history** (asks first) and **Export JSON**.
+- Stopping early is never punished: stopped sessions still count towards totals and levels.
 
 ## What gets hidden during a session
 
@@ -52,13 +65,13 @@ A full list of what the extension does today (v1.0.0), followed by the gaps that
 
 ## Privacy and safety
 
-- The only extra site permission is `googleapis.com`. Nothing is sent anywhere else, and there's no account or server.
+- The only extra site permission is `googleapis.com`. Nothing is sent anywhere else, and there's no account or server. Session history and goals stay in `chrome.storage.local`.
 - Video titles are always inserted as plain text, never HTML.
 
 ## Gaps and expansion ideas
 
 - **Only the home and watch pages get the study feed.** Search results, channel pages, Subscriptions and the left menu are left as they are during a session.
 - **The feed is a keyword search ranked by relevance.** There are no filters (length, language, date, channel), and it's not "related to this video", because the API dropped that in 2023.
-- **One topic at a time, and sessions aren't recorded anywhere.** There's no history, stats, streaks or study log.
+- **One topic at a time.** Stats are local to this Chrome profile; there's no sync between devices and no friends leaderboard (parked as phase 2 in the spec).
 - **Nothing stops you from leaving.** You can stop anytime with no friction, and other sites aren't affected.
-- **Editing the minutes restarts the timer** from "minutes left" rather than adjusting it.
+- **Editing the minutes restarts the timer** from "minutes left" rather than adjusting it (the time already studied is still counted in the log).
