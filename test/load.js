@@ -11,15 +11,17 @@ const source = (file) => readFileSync(new URL(file, root), 'utf8');
 // `get(name)` reads any top-level function or const, e.g. get('decodeHtml').
 export function loadBackground({ storage = {}, fetch } = {}) {
   const chrome = createFakeChrome(storage);
+  const run = (file) => vm.runInContext(source(file), context, { filename: file });
   const context = vm.createContext({
     chrome,
+    importScripts: (...files) => files.forEach(run),
     fetch: fetch || (async () => {
       throw new Error('fetch not stubbed in this test');
     }),
     URLSearchParams,
     console
   });
-  vm.runInContext(source('background.js'), context, { filename: 'background.js' });
+  run('background.js');
   return { chrome, context, get: (name) => vm.runInContext(name, context) };
 }
 
