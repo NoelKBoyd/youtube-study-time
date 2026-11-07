@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { JSDOM } from 'jsdom';
 import { createFakeChrome } from './fake-chrome.js';
 
-const root = new URL('../', import.meta.url);
+const root = new URL('../extension/', import.meta.url);
 const source = (file) => readFileSync(new URL(file, root), 'utf8');
 
 // Runs background.js in a fresh context, like a service worker with no DOM.
@@ -64,7 +64,7 @@ export function loadContent({ url = 'https://www.youtube.com/', html = '', stora
   // Run it as a classic script in the page's context, so its top-level consts
   // (ERROR_MESSAGES, MAX_PAGES, ...) stay readable by later get() calls.
   const vmContext = dom.getInternalVMContext();
-  // The manifest's content_scripts files, in the same order (shared.js, ui.js, content.js).
+  // The manifest's content_scripts files, in the same order (shared/shared.js, shared/ui.js, content/content.js).
   for (const file of contentScripts()) vm.runInContext(source(file), vmContext, { filename: file });
   const page = {
     dom,
@@ -83,7 +83,7 @@ export function loadContent({ url = 'https://www.youtube.com/', html = '', stora
   return page;
 }
 
-// Opens one of the extension's own pages (e.g. 'stats.html') in jsdom with its real
+// Opens one of the extension's own pages (e.g. 'stats/stats.html', paths relative to extension/) in jsdom with its real
 // markup, then runs its scripts in order. The <script> tags themselves are not run.
 // `messageHandler` answers chrome.runtime.sendMessage calls from the page.
 export function loadPage(file, scripts, { storage = {}, messageHandler } = {}) {

@@ -355,7 +355,7 @@ test('timeAgo', async () => {
 
 // CLAUDE.md: background.js error codes and content.js ERROR_MESSAGES must stay in step.
 test('every error code from background.js has a message in content.js', async () => {
-  const background = readFileSync(new URL('../background.js', import.meta.url), 'utf8');
+  const background = readFileSync(new URL('../extension/background.js', import.meta.url), 'utf8');
   const codes = new Set([...background.matchAll(/(?:error:\s*|return\s+)'([a-z]+)'/g)].map((m) => m[1]));
   const page = loadContent();
   await flush(); // let the script's startup storage read finish

@@ -1,5 +1,5 @@
-/* Roboto, bundled with the extension (fonts/, SIL Open Font License, see
-   fonts/LICENSE-Roboto.txt). Only the extension's own pages load this file. The
+/* Roboto, bundled with the extension (assets/fonts/, SIL Open Font License, see
+   assets/fonts/LICENSE-Roboto.txt). Only the extension's own pages load this file. The
    panel on YouTube uses the Roboto that YouTube already loads; declaring it in a
    content-script stylesheet would make YouTube's own text request these files. */
 
@@ -8,7 +8,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('fonts/roboto-latin-400-normal.woff2') format('woff2');
+  src: url('../assets/fonts/roboto-latin-400-normal.woff2') format('woff2');
 }
 
 @font-face {
@@ -16,5 +16,5 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('fonts/roboto-latin-500-normal.woff2') format('woff2');
+  src: url('../assets/fonts/roboto-latin-500-normal.woff2') format('woff2');
 }

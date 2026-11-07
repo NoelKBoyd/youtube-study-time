@@ -28,7 +28,7 @@ Everything stays in Chrome's local storage. Nothing is uploaded.
 
 1. Unzip the folder somewhere permanent. Chrome loads it from that location.
 2. Open `chrome://extensions` and turn on **Developer mode** (top right).
-3. Click **Load unpacked** and select the `youtube-study-time` folder.
+3. Click **Load unpacked** and select the `extension` folder inside `youtube-study-time`.
 4. Pin the extension from the puzzle-piece menu so the icon is easy to reach.
 
 ## Development
@@ -60,25 +60,28 @@ By default a key gets **100 searches per day**. Each page of results (up to 50 v
 
 ## Files
 
-| File | What it does |
-|---|---|
-| `manifest.json` | Extension setup and permissions |
-| `background.js` | Session timer (alarms, badge, notification), the session log, and all YouTube API calls, with caching |
-| `shared.js` | Level thresholds, default goals, `topicKey()` and date helpers, shared by the worker and the pages |
-| `content.js` | Runs on youtube.com: detects page changes, hides suggestions and builds the study feed |
-| `content.css` | Hides YouTube's suggestions and lays out the study panel (follows YouTube's light or dark theme) |
-| `theme.css` | The shared design system (Material 3 style colours, type, buttons, fields, chips, tables, dialog, snackbar), used by every page and the panel |
-| `ui.js` | Material Symbols icons (`makeIcon()`) and the snackbar, shared by the pages and the content script |
-| `fonts.css`, `fonts/` | Roboto, bundled for the extension's pages (SIL Open Font License) |
-| `popup.html/.js/.css` | Toolbar popup for starting a session, showing the countdown and stopping, with today's total and a link to the stats |
-| `options.html/.js/.css` | Settings page for the API key and the cache |
-| `stats.html/.js/.css` | Stats page: totals, goals, streaks, topics, history, export |
-| `constellation.js` | The constellation drawing on the stats page (plain SVG) |
-| `test/` | Unit tests, run with `npm test` (not part of the extension) |
-| `package.json`, `web-ext-config.mjs` | Dev tooling only (not part of the extension) |
+```
+extension/      The extension itself: this is the folder Chrome loads
+  manifest.json   Extension setup and permissions
+  background.js   Session timer (alarms, badge, notification), the session log, and all YouTube API calls, with caching
+  shared/         Code and styles used everywhere:
+                    shared.js  level thresholds, default goals, topicKey() and date helpers
+                    ui.js      Material Symbols icons (makeIcon()) and the snackbar
+                    theme.css  the design system (Material 3 style colours, type, buttons, fields, chips, tables, dialog, snackbar)
+                    fonts.css  Roboto for the extension's pages
+  content/        Runs on youtube.com: content.js detects page changes, hides suggestions and builds the
+                  study feed; content.css lays out the study panel (follows YouTube's light or dark theme)
+  popup/          Toolbar popup: start a session, see the countdown, stop, today's total, link to stats
+  options/        Settings page for the API key and the cache
+  stats/          Stats page (totals, goals, streaks, topics, history, export) and constellation.js, its star drawing
+  assets/         fonts/ (Roboto, SIL Open Font License) and icons/
+test/           Unit tests, run with `npm test` (not part of the extension)
+docs/           Feature notes and design specs
+package.json, web-ext-config.mjs   Dev tooling only (not part of the extension)
+```
 
 ## Known limits
 
 - The feed is a **topic search**, not "related to this video". YouTube removed related-video search from the API in 2023.
 - **Your own playlists** keep playing in order (Mixes, which YouTube picks for you, are treated as recommendations).
-- YouTube changes its page structure from time to time. If its own sidebar can't be found, the feed still appears (in the right-hand column, or as a floating panel) and a warning is logged in the page console. All YouTube element names the extension relies on are in the `YT` list at the top of `content.js` and at the top of `content.css`.
+- YouTube changes its page structure from time to time. If its own sidebar can't be found, the feed still appears (in the right-hand column, or as a floating panel) and a warning is logged in the page console. All YouTube element names the extension relies on are in the `YT` list at the top of `extension/content/content.js` and at the top of `extension/content/content.css`.
