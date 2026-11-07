@@ -1,4 +1,4 @@
-// YouTube Study Time - icons and small UI helpers shared by the extension pages and
+// Study Time for YouTube - icons and small UI helpers shared by the extension pages and
 // the content script. Plain top-level declarations (the content script shares one
 // scope with shared.js and content.js, so these names must stay unique).
 //

@@ -1,4 +1,4 @@
-# YouTube Study Time
+# Study Time for YouTube
 
 A Chrome extension: choose a topic and a length of time. Until the timer ends, YouTube only suggests videos about that topic.
 

@@ -1,4 +1,4 @@
-// YouTube Study Time - settings page
+// Study Time for YouTube - settings page
 
 fillIcons();
 
