@@ -15,6 +15,7 @@ export default {
     'web-ext-artifacts',
     'CLAUDE.md',
     'README.md',
+    'FEATURES.md',
     '.gitignore'
   ],
   run: {
