@@ -1,4 +1,4 @@
-# Study Time for YouTube: Features
+# Study Time: Features
 
 A full list of what the extension does today (v1.1.0), followed by the gaps that are the most obvious places to expand it.
 

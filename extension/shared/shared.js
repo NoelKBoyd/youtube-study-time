@@ -1,4 +1,4 @@
-// Study Time for YouTube - helpers shared by background.js, the popup and the stats page.
+// Study Time - helpers shared by background.js, the popup and the stats page.
 // Plain top-level declarations, no DOM: background.js loads this with importScripts(),
 // the pages with a <script> tag.
 
