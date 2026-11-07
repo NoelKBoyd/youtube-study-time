@@ -150,6 +150,73 @@ test('stopping the session removes the panel', async () => {
   page.close();
 });
 
+test('the panel editor changes topic and time, and can stop the session', async () => {
+  const page = loadContent({
+    url: 'https://www.youtube.com/',
+    html: '<ytd-page-manager></ytd-page-manager>',
+    storage: { session: session(10) }
+  });
+  await flush();
+  const panel = page.document.getElementById('yst-panel');
+  const editor = panel.querySelector('.yst-editor');
+  assert.equal(editor.hidden, true);
+
+  panel.querySelector('.yst-edit-button').click();
+  assert.equal(editor.hidden, false);
+  const [topicInput, minutesInput] = editor.querySelectorAll('input');
+  assert.equal(topicInput.value, 'linear algebra');
+  assert.equal(minutesInput.value, '10');
+
+  topicInput.value = '  calculus ';
+  minutesInput.value = '25';
+  editor.requestSubmit();
+  await flush();
+  assert.deepEqual(page.chrome.runtime.sentMessages.at(-1), { type: 'start', topic: 'calculus', minutes: 25 });
+  const { lastTopic, lastMinutes } = await page.chrome.storage.local.get(['lastTopic', 'lastMinutes']);
+  assert.deepEqual([lastTopic, lastMinutes], ['calculus', 25]);
+
+  editor.querySelector('.yst-danger').click();
+  await flush();
+  assert.deepEqual(page.chrome.runtime.sentMessages.at(-1), { type: 'stop' });
+  page.close();
+});
+
+test('home page with no session: a start bar starts one with the last values', async () => {
+  const page = loadContent({
+    url: 'https://www.youtube.com/',
+    html: '<ytd-page-manager></ytd-page-manager>',
+    storage: { lastTopic: 'physics', lastMinutes: 30 }
+  });
+  await flush();
+  const bar = page.document.querySelector('ytd-page-manager > form.yst-start');
+  assert.ok(bar);
+  assert.equal(page.document.documentElement.classList.contains('yst-active'), false);
+  const [topicInput, minutesInput] = bar.querySelectorAll('input');
+  assert.deepEqual([topicInput.value, minutesInput.value], ['physics', '30']);
+
+  topicInput.value = 'chemistry';
+  bar.requestSubmit();
+  await flush();
+  assert.deepEqual(page.chrome.runtime.sentMessages.at(-1), { type: 'start', topic: 'chemistry', minutes: 30 });
+  page.close();
+});
+
+test('the start bar can be hidden for the tab, and is not shown on watch pages', async () => {
+  const home = loadContent({ url: 'https://www.youtube.com/', html: '<ytd-page-manager></ytd-page-manager>' });
+  await flush();
+  home.document.querySelector('.yst-dismiss').click();
+  assert.equal(home.document.querySelector('.yst-start'), null);
+  home.document.dispatchEvent(new home.window.Event('yt-navigate-finish'));
+  await flush();
+  assert.equal(home.document.querySelector('.yst-start'), null);
+  home.close();
+
+  const watch = loadContent({ url: 'https://www.youtube.com/watch?v=v1', html: WATCH_PAGE });
+  await flush();
+  assert.equal(watch.document.querySelector('.yst-start'), null);
+  watch.close();
+});
+
 test('watched videos are remembered per tab, without duplicates', async () => {
   const page = loadContent({ url: 'https://www.youtube.com/watch?v=v1', html: WATCH_PAGE, storage: { session: session() } });
   await flush();

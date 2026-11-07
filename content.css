@@ -118,6 +118,144 @@ html[dark] #yst-panel {
   background: var(--yst-soft);
 }
 
+/* Home page, no session: slim bar above YouTube's feed to start one */
+#yst-panel.yst-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  margin: 16px 0 0;
+  padding: 12px 24px;
+  background: var(--yst-soft);
+  border-radius: 12px;
+}
+
+.yst-start .yst-label {
+  flex-basis: 100%;
+}
+
+.yst-start .yst-field {
+  flex-basis: 240px;
+  flex-grow: 0;
+}
+
+.yst-start .yst-field-minutes {
+  flex-basis: 100px;
+}
+
+.yst-start .yst-button {
+  margin-bottom: 0;
+}
+
+.yst-dismiss {
+  margin-left: auto;
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--yst-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.yst-start .yst-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+#yst-panel [hidden] {
+  display: none !important;
+}
+
+.yst-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.yst-edit-button {
+  padding: 4px 12px;
+  border: 1px solid var(--yst-muted);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--yst-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.yst-edit-button:hover {
+  background: var(--yst-bg);
+}
+
+/* Inline form for changing topic / time, below the header */
+.yst-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: -4px 0 12px;
+  border-radius: 12px;
+  background: var(--yst-soft);
+}
+
+.yst-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 180px;
+  font-size: 12px;
+  color: var(--yst-muted);
+}
+
+.yst-field-minutes {
+  flex: 0 0 100px;
+}
+
+.yst-input {
+  padding: 8px 10px;
+  border: 1px solid var(--yst-muted);
+  border-radius: 8px;
+  background: var(--yst-bg);
+  color: var(--yst-text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.yst-input:focus {
+  outline: 2px solid var(--yst-accent);
+  outline-offset: -1px;
+}
+
+.yst-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.yst-actions .yst-button {
+  margin-bottom: 0;
+}
+
+.yst-button.yst-secondary {
+  background: transparent;
+  color: var(--yst-text);
+  border: 1px solid var(--yst-muted);
+}
+
+.yst-button.yst-danger {
+  background: #c62828;
+}
+
+.yst-editor .yst-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .yst-label {
   font-size: 12px;
   color: var(--yst-muted);

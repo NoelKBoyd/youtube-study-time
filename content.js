@@ -8,6 +8,8 @@
 //       home page  -> as a full-page grid over the normal feed
 //   - sends Shorts pages to the normal watch page (no endless Shorts feed)
 //   - makes autoplay play the next study video instead of YouTube's pick
+//   - lets the user edit or stop the session from the panel itself
+// With no session, the home page gets a slim "start studying" bar instead.
 
 const MAX_PAGES = 10; // safety limit: at most 10 API calls per page view
 
@@ -40,6 +42,15 @@ async function update() {
     try {
       sessionStorage.removeItem('yst-watched'); // next session starts fresh
     } catch {}
+    if (location.pathname === '/' && !startBarDismissed()) {
+      const defaults = await chrome.storage.local.get(['lastTopic', 'lastMinutes']);
+      if (thisUpdate !== updateCount) return; // user moved on while we waited
+      const content = document.querySelector(YT.pageContent);
+      if (content) {
+        panel = createStartBar(defaults);
+        content.prepend(panel);
+      }
+    }
     return;
   }
 
@@ -118,13 +129,27 @@ function createPanel(layout) {
   const titleBox = make('div');
   titleBox.append(make('div', 'yst-label', 'Study time'), make('div', 'yst-topic', session.topic));
   const countdown = make('div', 'yst-countdown');
-  header.append(titleBox, countdown);
+  const editButton = make('button', 'yst-edit-button', 'Edit');
+  editButton.type = 'button';
+  const headerRight = make('div', 'yst-header-right');
+  headerRight.append(countdown, editButton);
+  header.append(titleBox, headerRight);
+
+  const editor = createEditor(() => {
+    editor.hidden = true;
+    editButton.hidden = false;
+  });
+  editor.hidden = true;
+  editButton.addEventListener('click', () => {
+    editor.open();
+    editButton.hidden = true;
+  });
 
   const list = make('div', 'yst-list');
   const status = make('div', 'yst-status');
   const sentinel = make('div', 'yst-sentinel'); // when this scrolls into view, load more
 
-  el.append(header, list, status, sentinel);
+  el.append(header, editor, list, status, sentinel);
 
   const stopCountdown = startCountdown(countdown);
   const stopFeed = startFeed(list, status, sentinel);
@@ -133,6 +158,147 @@ function createPanel(layout) {
     stopFeed();
   };
   return el;
+}
+
+// Inline form to change the topic and time left, or stop, without opening the popup.
+// Saving restarts the session through the background worker ('start' overwrites the
+// session and its alarm); the storage change then rebuilds the panel with the new values.
+function createEditor(close) {
+  const form = make('form', 'yst-editor');
+  const { topicInput, minutesInput, topicLabel, minutesLabel } = sessionFields('Topic', 'Minutes left');
+
+  const save = make('button', 'yst-button', 'Save');
+  save.type = 'submit';
+  const cancel = make('button', 'yst-button yst-secondary', 'Cancel');
+  cancel.type = 'button';
+  const stop = make('button', 'yst-button yst-danger', 'Stop session');
+  stop.type = 'button';
+  const actions = make('div', 'yst-actions');
+  actions.append(save, cancel, stop);
+
+  const error = make('p', 'yst-error');
+  error.hidden = true;
+
+  form.append(topicLabel, minutesLabel, actions, error);
+
+  form.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') close();
+  });
+  keepKeysFromYouTube(form);
+  const send = sender(error);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitSession(topicInput, minutesInput, send);
+  });
+  cancel.addEventListener('click', close);
+  stop.addEventListener('click', () => send({ type: 'stop' }));
+
+  form.open = () => {
+    topicInput.value = session.topic;
+    minutesInput.value = Math.max(1, Math.ceil((session.endTime - Date.now()) / 60000));
+    error.hidden = true;
+    form.hidden = false;
+    topicInput.focus();
+  };
+  return form;
+}
+
+// Home page, no session running: a slim bar to start one without opening the popup.
+// The × hides it for the rest of this tab's life (sessionStorage is per tab).
+function createStartBar({ lastTopic, lastMinutes }) {
+  const form = make('form', 'yst-start');
+  form.id = 'yst-panel';
+  const { topicInput, minutesInput, topicLabel, minutesLabel } = sessionFields(
+    'What are you studying?',
+    'Minutes'
+  );
+  topicInput.placeholder = 'e.g. Embedded C STM32';
+  topicInput.value = lastTopic || '';
+  minutesInput.value = lastMinutes || 45;
+
+  const start = make('button', 'yst-button', 'Start studying');
+  start.type = 'submit';
+  const dismiss = make('button', 'yst-dismiss', '×');
+  dismiss.type = 'button';
+  dismiss.title = 'Hide for this tab';
+  dismiss.setAttribute('aria-label', 'Hide for this tab');
+
+  const error = make('p', 'yst-error');
+  error.hidden = true;
+
+  form.append(make('div', 'yst-label', 'Study time'), topicLabel, minutesLabel, start, dismiss, error);
+  keepKeysFromYouTube(form);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitSession(topicInput, minutesInput, sender(error));
+  });
+  dismiss.addEventListener('click', () => {
+    try {
+      sessionStorage.setItem('yst-start-hidden', '1');
+    } catch {}
+    removePanel();
+  });
+
+  form.cleanup = () => {};
+  return form;
+}
+
+function startBarDismissed() {
+  try {
+    return sessionStorage.getItem('yst-start-hidden') === '1';
+  } catch {
+    return false;
+  }
+}
+
+// Topic + minutes inputs, shared by the start bar and the session editor.
+function sessionFields(topicText, minutesText) {
+  const topicInput = make('input', 'yst-input');
+  topicInput.type = 'text';
+  topicInput.required = true;
+  topicInput.maxLength = 100;
+  const topicLabel = make('label', 'yst-field', topicText);
+  topicLabel.append(topicInput);
+
+  const minutesInput = make('input', 'yst-input');
+  minutesInput.type = 'number';
+  minutesInput.required = true;
+  minutesInput.min = '1';
+  minutesInput.max = '600';
+  const minutesLabel = make('label', 'yst-field yst-field-minutes', minutesText);
+  minutesLabel.append(minutesInput);
+
+  return { topicInput, minutesInput, topicLabel, minutesLabel };
+}
+
+// Starts (or restarts) the session. The background worker writes `session`,
+// and the storage change rebuilds the panel.
+async function submitSession(topicInput, minutesInput, send) {
+  const topic = topicInput.value.trim();
+  const minutes = Number(minutesInput.value);
+  if (!topic || !(minutes > 0)) return;
+  await chrome.storage.local.set({ lastTopic: topic, lastMinutes: minutes });
+  await send({ type: 'start', topic, minutes });
+}
+
+// Returns a function that messages the background worker and shows a failure in `errorEl`.
+function sender(errorEl) {
+  return async (message) => {
+    try {
+      await chrome.runtime.sendMessage(message);
+    } catch {
+      // Happens if the extension was reloaded while this tab stayed open.
+      errorEl.textContent = ERROR_MESSAGES.reloaded;
+      errorEl.hidden = false;
+    }
+  };
+}
+
+// YouTube's keyboard shortcuts (k, j, f, /...) listen on document; keep typing in our forms.
+function keepKeysFromYouTube(el) {
+  el.addEventListener('keydown', (event) => event.stopPropagation());
 }
 
 function startCountdown(element) {
