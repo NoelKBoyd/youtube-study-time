@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.runtime.openOptionsPage();
   }
   if (msg.type === 'openStats') {
-    openStats();
+    openStats(msg.section === 'goals' ? 'goals-heading' : '');
   }
 });
 
@@ -207,8 +207,9 @@ chrome.notifications.onClicked.addListener((id) => {
   chrome.notifications.clear(id);
 });
 
-function openStats() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('stats.html') });
+// `anchor` is an element id on the stats page to scroll to (e.g. the goals form).
+function openStats(anchor = '') {
+  chrome.tabs.create({ url: chrome.runtime.getURL('stats.html') + (anchor ? '#' + anchor : '') });
 }
 
 async function showBadge(on) {
