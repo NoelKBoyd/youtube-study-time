@@ -1,4 +1,4 @@
-// Study Time for YouTube - stats page
+// Study Time - stats page
 // Reads sessionLog and goals from storage and draws totals, goals, streaks, topics
 // and history. It writes only `goals`; deleting history goes through the background
 // worker, which owns sessionLog.
@@ -358,7 +358,7 @@ $('clear-confirm').addEventListener('click', () => {
 
 $('export').addEventListener('click', () => {
   const data = {
-    app: 'Study Time for YouTube',
+    app: 'Study Time',
     version: 1,
     exportedAt: new Date().toISOString(),
     goals: state.goals,

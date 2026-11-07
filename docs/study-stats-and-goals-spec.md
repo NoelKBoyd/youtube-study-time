@@ -1,4 +1,4 @@
-# Study Time for YouTube: Stats, Goals & Topic Mastery (spec for v1.1)
+# Study Time: Stats, Goals & Topic Mastery (spec for v1.1)
 
 Builds on the v1.0.0 feature list. Closes two of its listed gaps: "no history, stats, streaks or study log" and (partly) "nothing stops you from leaving" by giving sessions a reason to be finished.
 

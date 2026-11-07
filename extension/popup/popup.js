@@ -1,4 +1,4 @@
-// Study Time for YouTube - toolbar popup
+// Study Time - toolbar popup
 // Start a session (topic + minutes), or see the countdown and stop early.
 
 fillIcons();
